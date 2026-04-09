@@ -10,6 +10,17 @@ Heimdall is a secure, role-based HTTP Request Management and Execution platform 
 - **Request Cloning**: Easily clone and mutate existing/historical requests into new drafts natively from the dashboard.
 - **Execution Telemetry**: Once an approved request is successfully executed by the server, the raw payload response and corresponding HTTP Status Codes are permanently attached to the ticket for post-mortem inspection.
 
+## 📷 Screenshots
+<img width="1800" height="1039" alt="Screenshot 2026-04-09 at 13 22 45" src="https://github.com/user-attachments/assets/3d5de97e-0c82-40bf-9d4f-c4670923b4f7" />
+<img width="1799" height="1039" alt="Screenshot 2026-04-09 at 13 22 55" src="https://github.com/user-attachments/assets/492434fb-d7b8-4a2b-b0f9-ec29f44b704d" />
+<img width="1800" height="1037" alt="Screenshot 2026-04-09 at 13 23 05" src="https://github.com/user-attachments/assets/b653c720-8eeb-4032-af72-92d234fb497d" />
+<img width="1800" height="1037" alt="Screenshot 2026-04-09 at 13 23 25" src="https://github.com/user-attachments/assets/a44887f3-6a00-4370-a6ea-2e2d0550afd8" />
+<img width="1800" height="1039" alt="Screenshot 2026-04-09 at 13 23 35" src="https://github.com/user-attachments/assets/41cf04fd-a928-4149-8e69-bd25cddbb9b7" />
+<img width="1800" height="1038" alt="Screenshot 2026-04-09 at 13 23 48" src="https://github.com/user-attachments/assets/b984fd26-52ac-484f-a222-66dfb56c3e05" />
+<img width="1800" height="1038" alt="Screenshot 2026-04-09 at 13 24 04" src="https://github.com/user-attachments/assets/a483b91c-6f2f-40c6-a1ba-ed9176024a97" />
+
+
+
 ## 🛠 Tech Stack
 
 - **Framework**: Next.js 16 (App Router + React)
