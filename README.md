@@ -9,11 +9,12 @@ Heimdall is a secure, role-based HTTP Request Management and Execution platform 
 
 ## 🌟 Core Features
 
-- **Role-Based Access Control (RBAC)**: Deep Active Directory (LDAP) integration out-of-the-box. Users are systematically classified as `REQUESTER` or `APPROVER` dynamically via whitelist mapping.
+- **Flexible Authentication**: Natively supports both legacy Active Directory / LDAP and modern Enterprise SSO (OpenID Connect via Google, Keycloak, Auth0) out-of-the-box using a simple `AUTH_MODE` toggle.
+- **Role-Based Access Control (RBAC)**: Users are systematically classified strictly as `REQUESTER` or `APPROVER` dynamically via whitelist environment constraints.
 - **Granular Payload Construction**: Full GUI support for mapping URL search parameters, Header key-values (with dynamic Basic/Bearer Auth injection), and raw JSON bodies.
-- **Audit Trails**: Built-in comprehensive tracking for Request Creation, Approval, Rejection, and Execution phases with precise timestamps.
+- **Structured JSON Audit Trails**: A zero-dependency metadata flattening logger outputs strictly formatted non-nested JSON strings natively to `stdout` across all endpoint lifecycles—making Heimdall instantly plug-and-play with scraping infrastructures like Datadog, ELK, or Loki.
 - **Request Cloning**: Easily clone and mutate existing/historical requests into new drafts natively from the dashboard.
-- **Execution Telemetry**: Once an approved request is successfully executed by the server, the raw payload response and corresponding HTTP Status Codes are permanently attached to the ticket for post-mortem inspection.
+- **Execution Telemetry**: Once an approved request is successfully executed by the server, the raw payload response and corresponding network latency mapped via `performance.now()` are permanently attached to the ticket for post-mortem inspection.
 
 ## 📷 Screenshots
 <img width="1800" height="1039" alt="Screenshot 2026-04-09 at 13 22 45" src="https://github.com/user-attachments/assets/3d5de97e-0c82-40bf-9d4f-c4670923b4f7" />
@@ -31,7 +32,7 @@ Heimdall is a secure, role-based HTTP Request Management and Execution platform 
 - **Framework**: Next.js 16 (App Router + React)
 - **Styling**: Tailwind CSS 
 - **Database**: Prisma ORM with SQLite backend (Easily swappable to Postgres/MySQL)
-- **Authentication**: `ldap-authentication` for natively hooking into Active Directory / LDAP servers.
+- **Authentication**: Dual-mode engine utilizing `ldap-authentication` for Active Directory and vanilla `fetch()` + `jose` for pure natively validated OAuth2 (OIDC) JSON Web Tokens.
 
 ## 🚀 QuickStart (Local Development)
 
@@ -46,10 +47,20 @@ Heimdall is a secure, role-based HTTP Request Management and Execution platform 
    # Database Configuration
    DATABASE_URL="file:./dev.db"
 
+   # Flexible Environment Toggles
+   AUTH_MODE="LDAP"  # Choose strictly "LDAP" or "SSO"
+
    # LDAP / Authentication Configuration
    MOCK_LDAP="true"  # Set to false to bind to real LDAP instances
    LDAP_URL="ldap://your-server:389"
-   LDAP_SEARCH_FILTER="(|(sAMAccountName={{username}})(userPrincipalName={{username}}))"
+   LDAP_SEARCH_FILTER="(|(sAMAccountName=%s)(userPrincipalName=%s))"
+
+   # OIDC Configuration (If AUTH_MODE="SSO")
+   OAUTH_CLIENT_ID="your-client-id"
+   OAUTH_CLIENT_SECRET="your-client-secret"
+   OAUTH_AUTH_URL="https://accounts.google.com/o/oauth2/v2/auth"
+   OAUTH_TOKEN_URL="https://oauth2.googleapis.com/token"
+   OAUTH_REDIRECT_URI="http://localhost:3000/api/auth/callback"
 
    # Security Roles
    APPROVERS="admin,supervisor.name"
