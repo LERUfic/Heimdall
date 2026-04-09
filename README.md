@@ -1,4 +1,9 @@
-# Heimdall HTTP Approval Platform
+<p align="center">
+<img width="195" height="404" alt="Heimdall" align="center" src="https://github.com/user-attachments/assets/690de34e-0d27-4e2d-b1ce-2366e6ac1649" />
+</p>
+
+# Heimdall HTTP Appro
+val Platform
 
 Heimdall is a secure, role-based HTTP Request Management and Execution platform built with Next.js 16. It acts as an intermediate approval layer for sensitive internal API requests, requiring designated approvers to vet payloads before they are physically executed on the backend network.
 
