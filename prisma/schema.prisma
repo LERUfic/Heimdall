@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(uuid())
+  username         String   @unique
+  role             String   // "REQUESTER" or "APPROVER"
+  requestsCreated  HttpRequest[] @relation("Requester")
+  requestsApproved HttpRequest[] @relation("Approver")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model HttpRequest {
+  id          String   @id @default(uuid())
+  requester   User     @relation("Requester", fields: [requesterId], references: [id])
+  requesterId String
+  approver    User?    @relation("Approver", fields: [approverId], references: [id])
+  approverId  String?
+  method      String
+  url         String
+  headers     String?  // JSON string
+  body        String?  // Text/JSON body
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED, EXECUTED
+  response    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  approvedAt  DateTime?
+  executedAt  DateTime?
+}
