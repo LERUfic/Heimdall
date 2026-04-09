@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const p = await params;
@@ -15,6 +16,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       status: 'REJECTED',
       approverId: session.id
     }
+  })
+
+  logger.info({
+    event: 'REQUEST_REJECTED',
+    userId: session.id,
+    username: session.username,
+    metadata: { requestId: p.id }
   })
 
   return NextResponse.json({ request })

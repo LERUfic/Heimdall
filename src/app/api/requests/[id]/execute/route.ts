@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const p = await params;
@@ -22,8 +23,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       fetchOptions.body = request.body
     }
 
+    const startTime = performance.now()
     const response = await fetch(request.url, fetchOptions)
     const respText = await response.text()
+    const executionTimeMs = Math.round(performance.now() - startTime)
     
     // Assume we store part of response body or headers safely, truncated if needed
     const responseData = JSON.stringify({
@@ -41,8 +44,27 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       }
     })
 
+    logger.info({
+      event: 'REQUEST_EXECUTED',
+      userId: session.id,
+      username: session.username,
+      metadata: { 
+        requestId: p.id, 
+        httpStatus: response.status, 
+        targetUrl: request.url, 
+        executionTimeMs 
+      }
+    })
+
     return NextResponse.json({ request: updatedRequest })
   } catch (err: any) {
+    logger.error({
+      event: 'REQUEST_EXECUTION_FAILED',
+      userId: session.id,
+      username: session.username,
+      metadata: { requestId: p.id, targetUrl: request.url },
+      error: err
+    })
     return NextResponse.json({ error: 'Execution failed', details: err.message }, { status: 500 })
   }
 }

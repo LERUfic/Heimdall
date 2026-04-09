@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [isPretty, setIsPretty] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [loadingAction, setLoadingAction] = useState<string | null>(null)
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(searchQuery), 300)
@@ -44,15 +45,20 @@ export default function Dashboard() {
 
   const handleAction = async (e: React.MouseEvent, id: string, action: 'approve' | 'reject' | 'execute') => {
     e.stopPropagation()
-    const res = await fetch(`/api/requests/${id}/${action}`, { method: 'POST' })
-    if (res.ok) {
-      mutate()
-      if (selectedRequest && selectedRequest.id === id) {
-        setSelectedRequest(null)
+    setLoadingAction(`${action}-${id}`)
+    try {
+      const res = await fetch(`/api/requests/${id}/${action}`, { method: 'POST' })
+      if (res.ok) {
+        mutate()
+        if (selectedRequest && selectedRequest.id === id) {
+          setSelectedRequest(null)
+        }
+      } else {
+        const err = await res.json()
+        alert('Failed: ' + err.error)
       }
-    } else {
-      const err = await res.json()
-      alert('Failed: ' + err.error)
+    } finally {
+      setLoadingAction(null)
     }
   }
 
@@ -234,14 +240,20 @@ export default function Dashboard() {
                     <div className="flex flex-wrap gap-2">
                       {auth.user.role === 'APPROVER' && r.status === 'PENDING' && (
                         <>
-                          <button onClick={(e) => handleAction(e, r.id, 'approve')} className="px-3 py-1.5 bg-green-600/10 hover:bg-green-600/20 text-[#4caf50] text-sm font-medium rounded transition">Approve</button>
-                          <button onClick={(e) => handleAction(e, r.id, 'reject')} className="px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-[#f44336] text-sm font-medium rounded transition">Reject</button>
+                          <button disabled={loadingAction === `approve-${r.id}`} onClick={(e) => handleAction(e, r.id, 'approve')} className={`px-3 py-1.5 bg-green-600/10 hover:bg-green-600/20 text-[#4caf50] text-sm font-medium rounded transition ${loadingAction === `approve-${r.id}` ? 'opacity-50 cursor-wait' : ''}`}>
+                            {loadingAction === `approve-${r.id}` ? '...' : 'Approve'}
+                          </button>
+                          <button disabled={loadingAction === `reject-${r.id}`} onClick={(e) => handleAction(e, r.id, 'reject')} className={`px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-[#f44336] text-sm font-medium rounded transition ${loadingAction === `reject-${r.id}` ? 'opacity-50 cursor-wait' : ''}`}>
+                            {loadingAction === `reject-${r.id}` ? '...' : 'Reject'}
+                          </button>
                         </>
                       )}
                       {auth.user.role === 'REQUESTER' && (
                         <>
                           {r.status === 'APPROVED' && (
-                            <button onClick={(e) => handleAction(e, r.id, 'execute')} className="px-3 py-1.5 bg-[#f26b3a] hover:bg-[#e65c2b] text-white text-sm font-medium rounded shadow cursor-pointer transition">Execute</button>
+                            <button disabled={loadingAction === `execute-${r.id}`} onClick={(e) => handleAction(e, r.id, 'execute')} className={`px-3 py-1.5 bg-[#f26b3a] hover:bg-[#e65c2b] text-white text-sm font-medium rounded shadow transition ${loadingAction === `execute-${r.id}` ? 'opacity-70 cursor-wait' : 'cursor-pointer'}`}>
+                              {loadingAction === `execute-${r.id}` ? 'Executing...' : 'Execute'}
+                            </button>
                           )}
                           <button onClick={(e) => handleClone(e, r)} className="px-3 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-[#2196f3] text-sm font-medium rounded cursor-pointer transition tracking-wide">Clone</button>
                         </>

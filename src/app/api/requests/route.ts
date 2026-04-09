@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: Request) {
   const session = await getSession()
@@ -52,6 +53,13 @@ export async function POST(req: Request) {
       body: body || null,
       status: 'PENDING'
     }
+  })
+
+  logger.info({
+    event: 'REQUEST_CREATED',
+    userId: session.id,
+    username: session.username,
+    metadata: { requestId: request.id, method, targetUrl: url }
   })
 
   return NextResponse.json({ request })

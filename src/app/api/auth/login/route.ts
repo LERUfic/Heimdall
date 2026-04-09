@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { authenticate } from 'ldap-authentication'
 import { prisma } from '@/lib/prisma'
 import { setSessionCookie } from '@/lib/auth'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: Request) {
   const { username, password } = await req.json()
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
       const user = await authenticate(options)
       if (user) success = true
     } catch (err) {
-      console.error(err)
+      logger.error({ event: 'LDAP_AUTH_ERROR', username, error: err })
     }
   }
 
@@ -55,8 +56,17 @@ export async function POST(req: Request) {
       create: { username, role }
     })
     await setSessionCookie({ id: user.id, username: user.username, role: user.role })
+    
+    logger.info({
+      event: 'USER_LOGIN_SUCCESS',
+      userId: user.id,
+      username: user.username,
+      metadata: { role: user.role, isMock }
+    })
+    
     return NextResponse.json({ success: true, user })
   }
 
+  logger.warn({ event: 'USER_LOGIN_FAILED', username, metadata: { isMock } })
   return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 })
 }
