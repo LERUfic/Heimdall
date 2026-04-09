@@ -19,8 +19,15 @@ export default function CreateRequest() {
   const [bearerToken, setBearerToken] = useState('')
   const [basicUser, setBasicUser] = useState('')
   const [basicPass, setBasicPass] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [toast, setToast] = useState<{msg: string, type: 'error'|'success'} | null>(null)
 
   const router = useRouter()
+
+  const showToast = (msg: string, type: 'error'|'success' = 'error') => {
+    setToast({msg, type})
+    setTimeout(() => setToast(null), 3000)
+  }
 
   useEffect(() => {
     const cloneData = sessionStorage.getItem('clone_request')
@@ -92,10 +99,9 @@ export default function CreateRequest() {
     }
   }
 
-  // When URL changes, we could parse params, but to keep it simple, we just build the final URL with params at submission.
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsLoading(true)
     
     // Parse URL and append params
     let finalUrl = url
@@ -124,19 +130,25 @@ export default function CreateRequest() {
       parsedHeaders['Authorization'] = `Basic ${btoa(basicUser + ':' + basicPass)}`
     }
 
-    const res = await fetch('/api/requests', {
-      method: 'POST',
-      body: JSON.stringify({ 
-        method, 
-        url: finalUrl, 
-        headers: Object.keys(parsedHeaders).length > 0 ? parsedHeaders : null, 
-        body 
+    try {
+      const res = await fetch('/api/requests', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          method, 
+          url: finalUrl, 
+          headers: Object.keys(parsedHeaders).length > 0 ? parsedHeaders : null, 
+          body 
+        })
       })
-    })
-    if (res.ok) {
-      router.push('/')
-    } else {
-      alert('Failed to create request')
+      if (res.ok) {
+        router.push('/')
+      } else {
+        showToast('Failed to create request', 'error')
+      }
+    } catch (err) {
+      showToast('Failed to create request', 'error')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -220,8 +232,8 @@ export default function CreateRequest() {
               className="flex-1 bg-transparent text-white px-4 py-3 outline-none font-mono text-sm placeholder-zinc-600 focus:bg-[#303030]"
             />
 
-            <button type="submit" className="bg-[#f26b3a] hover:bg-[#e65c2b] text-white font-semibold tracking-wide px-8 py-3 cursor-pointer transition">
-              Send for Approval
+            <button type="submit" disabled={isLoading} className="bg-[#f26b3a] hover:bg-[#e65c2b] text-white font-semibold tracking-wide px-8 py-3 cursor-pointer transition disabled:opacity-50">
+              {isLoading ? 'Sending...' : 'Send for Approval'}
             </button>
           </div>
 
@@ -327,6 +339,11 @@ export default function CreateRequest() {
 
         </form>
       </div>
+      {toast && (
+        <div className={`fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-xl border ${toast.type === 'error' ? 'bg-red-900/30 border-red-500/50 text-red-500' : 'bg-emerald-900/30 border-emerald-500/50 text-emerald-400'} font-medium z-50 animate-in slide-in-from-bottom-4`}>
+          {toast.msg}
+        </div>
+      )}
     </div>
   )
 }

@@ -7,7 +7,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [providers, setProviders] = useState<{ ldap: boolean, sso: boolean } | null>(null)
+  const [toast, setToast] = useState<{ msg: string, type: 'error' | 'success' } | null>(null)
   const router = useRouter()
+
+  const showToast = (msg: string, type: 'error' | 'success' = 'error') => {
+    setToast({ msg, type })
+    setTimeout(() => setToast(null), 3000)
+  }
 
   useEffect(() => {
     fetch('/api/auth/providers')
@@ -27,10 +33,10 @@ export default function LoginPage() {
       if (res.ok) {
         router.push('/')
       } else {
-        alert('Login failed')
+        showToast('Login failed', 'error')
       }
     } catch (err) {
-      alert('Login failed. Network error.')
+      showToast('Login failed. Network error.', 'error')
     } finally {
       setIsLoading(false)
     }
@@ -40,7 +46,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-zinc-950">
       <div className="bg-zinc-900 p-8 rounded-xl shadow-2xl w-full max-w-sm ring-1 ring-zinc-800">
         <h1 className="text-2xl font-bold text-white mb-6 text-center tracking-tight">Login</h1>
-        
+
         {providers === null ? (
           <div className="text-zinc-500 text-center animate-pulse">Loading configurations...</div>
         ) : (
@@ -49,24 +55,24 @@ export default function LoginPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-zinc-400 mb-1">Username</label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              value={username}
-              onChange={w => setUsername(w.target.value)}
-              placeholder="e.g. requester1 or admin1"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-1">Password</label>
-            <input
-              type="password"
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              value={password}
-              onChange={w => setPassword(w.target.value)}
-              placeholder="Mock pwd is 'password'"
-            />
-          </div>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    value={username}
+                    onChange={w => setUsername(w.target.value)}
+                    placeholder="e.g. requester1 or admin1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-zinc-400 mb-1">Password</label>
+                  <input
+                    type="password"
+                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    value={password}
+                    onChange={w => setPassword(w.target.value)}
+                    placeholder="Mock pwd is 'password'"
+                  />
+                </div>
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -86,8 +92,8 @@ export default function LoginPage() {
             )}
 
             {providers.sso && (
-              <a 
-                href="/api/auth/sso" 
+              <a
+                href="/api/auth/sso"
                 className="w-full flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-2.5 px-4 rounded-lg transition border border-zinc-700"
               >
                 Sign in with SSO
@@ -96,6 +102,11 @@ export default function LoginPage() {
           </div>
         )}
       </div>
+      {toast && (
+        <div className={`fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-xl border ${toast.type === 'error' ? 'bg-red-900/30 border-red-500/50 text-red-500' : 'bg-emerald-900/30 border-emerald-500/50 text-emerald-400'} font-medium z-50 animate-in slide-in-from-bottom-4`}>
+          {toast.msg}
+        </div>
+      )}
     </div>
   )
 }

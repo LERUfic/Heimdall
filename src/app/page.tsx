@@ -15,6 +15,15 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [loadingAction, setLoadingAction] = useState<string | null>(null)
+  const [showSaveModal, setShowSaveModal] = useState<any | null>(null)
+  const [templateName, setTemplateName] = useState('')
+  const [templateIsGlobal, setTemplateIsGlobal] = useState(false)
+  const [toast, setToast] = useState<{msg: string, type: 'error'|'success'} | null>(null)
+
+  const showToast = (msg: string, type: 'error'|'success' = 'error') => {
+    setToast({msg, type})
+    setTimeout(() => setToast(null), 3000)
+  }
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(searchQuery), 300)
@@ -50,12 +59,13 @@ export default function Dashboard() {
       const res = await fetch(`/api/requests/${id}/${action}`, { method: 'POST' })
       if (res.ok) {
         mutate()
+        showToast(`Request ${action}d successfully`, 'success')
         if (selectedRequest && selectedRequest.id === id) {
           setSelectedRequest(null)
         }
       } else {
         const err = await res.json()
-        alert('Failed: ' + err.error)
+        showToast('Failed: ' + err.error, 'error')
       }
     } finally {
       setLoadingAction(null)
@@ -71,6 +81,29 @@ export default function Dashboard() {
     e.stopPropagation()
     sessionStorage.setItem('clone_request', JSON.stringify(r))
     router.push('/create')
+  }
+
+  const handleSaveCollection = async () => {
+    if (!templateName.trim()) return showToast('Template name is required', 'error')
+    const res = await fetch('/api/collections', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: templateName,
+        method: showSaveModal.method,
+        url: showSaveModal.url,
+        headers: showSaveModal.headers,
+        body: showSaveModal.body,
+        isGlobal: templateIsGlobal
+      })
+    })
+    if (res.ok) {
+      setShowSaveModal(null)
+      setTemplateName('')
+      showToast('Template saved to Collections!', 'success')
+    } else {
+      const err = await res.json()
+      showToast('Failed: ' + err.error, 'error')
+    }
   }
 
   const renderKVTable = (record: Record<string, string>) => {
@@ -155,7 +188,13 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#1c1c1c] p-8 text-white font-sans">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-extrabold tracking-tight">Heimdall Project</h1>
+          <div className="flex items-baseline gap-8">
+            <h1 className="text-3xl font-extrabold tracking-tight">Heimdall Project</h1>
+            <nav className="flex gap-6 text-sm font-semibold tracking-wide">
+              <Link href="/" className="text-[#f26b3a] border-b-2 border-[#f26b3a] pb-1">Dashboard</Link>
+              <Link href="/collections" className="text-zinc-500 hover:text-zinc-300 transition">Collections</Link>
+            </nav>
+          </div>
           <div className="flex items-center gap-4">
             <span className="text-zinc-400 text-sm">Logged in as <span className="text-white font-medium">{auth.user.username}</span> ({auth.user.role})</span>
             <button onClick={handleLogout} className="px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 text-white rounded-md transition ring-1 ring-zinc-700">Logout</button>
@@ -256,6 +295,7 @@ export default function Dashboard() {
                             </button>
                           )}
                           <button onClick={(e) => handleClone(e, r)} className="px-3 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-[#2196f3] text-sm font-medium rounded cursor-pointer transition tracking-wide">Clone</button>
+                          <button onClick={(e) => { e.stopPropagation(); setShowSaveModal(r) }} className="px-3 py-1.5 bg-purple-600/10 hover:bg-purple-600/20 text-purple-400 text-sm font-medium rounded cursor-pointer transition tracking-wide">Save as Template</button>
                         </>
                       )}
                     </div>
@@ -364,6 +404,52 @@ export default function Dashboard() {
             </div>
 
           </div>
+        </div>
+      )}
+      
+      {showSaveModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4" onClick={() => setShowSaveModal(null)}>
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl max-w-md w-full shadow-2xl p-6" onClick={e => e.stopPropagation()}>
+            <h2 className="text-xl font-bold text-white mb-4">Save Request as Template</h2>
+            <p className="text-sm text-zinc-400 mb-6">This will construct a persistent Collection Blueprint for rapid rapid execution natively.</p>
+            
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-zinc-400 mb-1">Template Name</label>
+                <input
+                  type="text"
+                  value={templateName}
+                  onChange={e => setTemplateName(e.target.value)}
+                  placeholder="e.g. Initiate User Sync Payload"
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-[#f26b3a] outline-none"
+                  autoFocus
+                />
+              </div>
+              <label className="flex items-center gap-3 cursor-pointer p-3 border border-zinc-700 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 transition">
+                <input 
+                  type="checkbox" 
+                  checked={templateIsGlobal} 
+                  onChange={e => setTemplateIsGlobal(e.target.checked)} 
+                  className="w-5 h-5 accent-[#f26b3a] cursor-pointer"
+                />
+                <div>
+                  <span className="block text-sm font-medium text-white">Global Collection Blueprint</span>
+                  <span className="block text-xs text-zinc-500">Allow anyone in your Enterprise AD group to view and draft this payload directly.</span>
+                </div>
+              </label>
+            </div>
+            
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowSaveModal(null)} className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition">Cancel</button>
+              <button onClick={handleSaveCollection} className="px-4 py-2 bg-[#f26b3a] hover:bg-[#e65c2b] text-white text-sm font-medium rounded-lg shadow transition">Save Template</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className={`fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-xl border ${toast.type === 'error' ? 'bg-red-900/30 border-red-500/50 text-red-500' : 'bg-emerald-900/30 border-emerald-500/50 text-emerald-400'} font-medium z-[200] animate-in slide-in-from-bottom-4`}>
+          {toast.msg}
         </div>
       )}
     </div>

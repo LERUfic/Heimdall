@@ -13,6 +13,7 @@ model User {
   role             String   // "REQUESTER" or "APPROVER"
   requestsCreated  HttpRequest[] @relation("Requester")
   requestsApproved HttpRequest[] @relation("Approver")
+  collections      RequestCollection[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
@@ -33,4 +34,17 @@ model HttpRequest {
   updatedAt   DateTime @updatedAt
   approvedAt  DateTime?
   executedAt  DateTime?
+}
+
+model RequestCollection {
+  id          String   @id @default(uuid())
+  name        String   // e.g. "Stripe Webhook Sync"
+  creator     User     @relation(fields: [creatorId], references: [id])
+  creatorId   String
+  method      String
+  url         String
+  headers     String?  // JSON string format
+  body        String?  // Text/JSON body
+  isGlobal    Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }
