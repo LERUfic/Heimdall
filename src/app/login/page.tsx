@@ -45,7 +45,13 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-950">
       <div className="bg-zinc-900 p-8 rounded-xl shadow-2xl w-full max-w-sm ring-1 ring-zinc-800">
-        <h1 className="text-2xl font-bold text-white mb-6 text-center tracking-tight">Login</h1>
+        <div className="flex items-center gap-3 mb-10 justify-center">
+          <img src="/logo.svg" alt="Heimdall Logo" className="w-12 h-12" />
+          <div className="flex flex-col">
+            <h1 className="text-3xl font-black tracking-tighter text-white leading-none">HEIMDALL</h1>
+            <span className="text-[11px] font-bold text-[#00C2FF] tracking-[.2em] leading-none mt-1 uppercase">Project</span>
+          </div>
+        </div>
 
         {providers === null ? (
           <div className="text-zinc-500 text-center animate-pulse">Loading configurations...</div>
@@ -60,7 +66,7 @@ export default function LoginPage() {
                     className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                     value={username}
                     onChange={w => setUsername(w.target.value)}
-                    placeholder="e.g. requester1 or admin1"
+                    placeholder="username"
                   />
                 </div>
                 <div>
@@ -70,7 +76,7 @@ export default function LoginPage() {
                     className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                     value={password}
                     onChange={w => setPassword(w.target.value)}
-                    placeholder="Mock pwd is 'password'"
+                    placeholder="password"
                   />
                 </div>
                 <button

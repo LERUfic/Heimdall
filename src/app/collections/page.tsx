@@ -219,9 +219,15 @@ export default function Collections() {
       <div className="max-w-6xl mx-auto">
         {/* Navigation Header */}
         <div className="flex justify-between items-center mb-8">
-          <div className="flex items-baseline gap-8">
-            <h1 className="text-3xl font-extrabold tracking-tight">Heimdall Project</h1>
-            <nav className="flex gap-6 text-sm font-semibold tracking-wide">
+          <div className="flex items-center gap-10">
+            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
+              <img src="/logo.svg" alt="Heimdall Logo" className="w-10 h-10" />
+              <div className="flex flex-col">
+                <h1 className="text-2xl font-black tracking-tighter text-white leading-none">HEIMDALL</h1>
+                <span className="text-[10px] font-bold text-[#00C2FF] tracking-[.2em] leading-none mt-1 uppercase">Project</span>
+              </div>
+            </Link>
+            <nav className="flex gap-6 text-sm font-semibold tracking-wide mt-2">
               <Link href="/" className="text-zinc-500 hover:text-zinc-300 transition">Dashboard</Link>
               <Link href="/collections" className="text-[#f26b3a] border-b-2 border-[#f26b3a] pb-1">Collections</Link>
             </nav>

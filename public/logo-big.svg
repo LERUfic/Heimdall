@@ -1,0 +1,44 @@
+<svg width="400" height="240" viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- ICON: Shield/Eye/Diamond -->
+  <g transform="translate(150, 0)">
+    <!-- Shield Outline -->
+    <path d="M50 8 L84 21 V45 C84 66 71 84 50 92 C29 84 16 66 16 45 V21 L50 8Z" stroke="white" stroke-width="2.5" />
+    
+    <!-- Almond Eye Outline -->
+    <path d="M26 45 C26 45 36 31 50 31 C64 31 74 45 74 45 C74 45 64 59 50 59 C36 59 26 45 26 45ZM29 45 C29 45 38 56 50 56 C62 56 71 45 71 45 C71 45 62 34 50 34 C38 34 29 45 29 45Z" fill="white" />
+    
+    <!-- Inner Cyan Diamond -->
+    <path d="M50 35 L64 45 L50 55 L36 45 L50 35Z" fill="#00C2FF" />
+    
+    <!-- Keyhole (punched through or white) -->
+    <circle cx="50" cy="43.5" r="3.2" fill="white" />
+    <path d="M47.8 44 L52.2 44 L53.5 51.5 L46.5 51.5 Z" fill="white" />
+  </g>
+  
+  <!-- TEXT: HEIMDALL -->
+  <!-- Hand-crafting the bridged text for perfect accuracy -->
+  <g transform="translate(48, 105)" fill="white">
+    <!-- H -->
+    <path d="M0 40 H12 V22 H24 V40 H36 V0 H24 V14 H12 V0 H0 V40Z" />
+    <!-- Bridge H-E -->
+    <rect x="36" y="16" width="12" height="8" />
+    <!-- E -->
+    <path d="M48 40 H80 V32 H58 V24 H76 V16 H58 V8 H80 V0 H48 V40Z" />
+    <!-- I -->
+    <path d="M88 40 H100 V0 H88 V40Z" />
+    <!-- M -->
+    <path d="M108 40 H120 V12 L132 30 L144 12 V40 H156 V0 H144 L132 18 L120 0 H108 V40Z" />
+    <!-- D -->
+    <path d="M164 40 H184 C198 40 208 30 208 20 C208 10 198 0 184 0 H164 V40ZM176 32 V8 H184 C192 8 196 12 196 20 C196 28 192 32 184 32 H176Z" />
+    <!-- A -->
+    <path d="M228 0 L212 40 H224 L227 32 H241 L244 40 H256 L240 0 H228ZM230 24 L234 12 L238 24 H230Z" />
+    <!-- L -->
+    <path d="M264 40 H292 V32 H276 V0 H264 V40Z" />
+    <!-- L -->
+    <path d="M300 40 H328 V32 H312 V0 H300 V40Z" />
+  </g>
+
+  <!-- DIVIDER -->
+  <path d="M80 175 H188 M212 175 H320" stroke="#00C2FF" stroke-width="2" />
+  <path d="M192 170 V180 M204 170 V180 M192 175 H204" stroke="white" stroke-width="2" />
+</svg>

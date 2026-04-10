@@ -18,10 +18,10 @@ export default function Dashboard() {
   const [showSaveModal, setShowSaveModal] = useState<any | null>(null)
   const [templateName, setTemplateName] = useState('')
   const [templateIsGlobal, setTemplateIsGlobal] = useState(false)
-  const [toast, setToast] = useState<{msg: string, type: 'error'|'success'} | null>(null)
+  const [toast, setToast] = useState<{ msg: string, type: 'error' | 'success' } | null>(null)
 
-  const showToast = (msg: string, type: 'error'|'success' = 'error') => {
-    setToast({msg, type})
+  const showToast = (msg: string, type: 'error' | 'success' = 'error') => {
+    setToast({ msg, type })
     setTimeout(() => setToast(null), 3000)
   }
 
@@ -188,9 +188,15 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#1c1c1c] p-8 text-white font-sans">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <div className="flex items-baseline gap-8">
-            <h1 className="text-3xl font-extrabold tracking-tight">Heimdall Project</h1>
-            <nav className="flex gap-6 text-sm font-semibold tracking-wide">
+          <div className="flex items-center gap-10">
+            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
+              <img src="/logo.svg" alt="Heimdall Logo" className="w-10 h-10" />
+              <div className="flex flex-col">
+                <h1 className="text-2xl font-black tracking-tighter text-white leading-none">HEIMDALL</h1>
+                <span className="text-[10px] font-bold text-[#00C2FF] tracking-[.2em] leading-none mt-1 uppercase">Project</span>
+              </div>
+            </Link>
+            <nav className="flex gap-6 text-sm font-semibold tracking-wide mt-2">
               <Link href="/" className="text-[#f26b3a] border-b-2 border-[#f26b3a] pb-1">Dashboard</Link>
               <Link href="/collections" className="text-zinc-500 hover:text-zinc-300 transition">Collections</Link>
             </nav>
@@ -251,9 +257,9 @@ export default function Dashboard() {
                   </td>
                   <td className="p-4">
                     <span className={`font-semibold tracking-wider text-xs ${r.method === 'GET' ? 'text-[#4caf50]' :
-                        r.method === 'POST' ? 'text-[#ffb300]' :
-                          r.method === 'PUT' ? 'text-[#2196f3]' :
-                            r.method === 'PATCH' ? 'text-[#9c27b0]' : 'text-[#f44336]'
+                      r.method === 'POST' ? 'text-[#ffb300]' :
+                        r.method === 'PUT' ? 'text-[#2196f3]' :
+                          r.method === 'PATCH' ? 'text-[#9c27b0]' : 'text-[#f44336]'
                       }`}>{r.method}</span>
                   </td>
                   <td className="p-4 text-zinc-300 font-mono text-sm max-w-[300px] truncate" title={r.url}>{r.url}</td>
@@ -320,9 +326,9 @@ export default function Dashboard() {
                   <div className="flex items-center gap-3">
                     <span className="text-zinc-400 font-mono text-xs tracking-wider pr-3 border-r border-[#333] uppercase">{selectedRequest.id.split('-')[0]}</span>
                     <span className={`font-semibold tracking-wider text-sm ${selectedRequest.method === 'GET' ? 'text-[#4caf50]' :
-                        selectedRequest.method === 'POST' ? 'text-[#ffb300]' :
-                          selectedRequest.method === 'PUT' ? 'text-[#2196f3]' :
-                            selectedRequest.method === 'PATCH' ? 'text-[#9c27b0]' : 'text-[#f44336]'
+                      selectedRequest.method === 'POST' ? 'text-[#ffb300]' :
+                        selectedRequest.method === 'PUT' ? 'text-[#2196f3]' :
+                          selectedRequest.method === 'PATCH' ? 'text-[#9c27b0]' : 'text-[#f44336]'
                       }`}>{selectedRequest.method}</span>
                     <span className="text-lg font-mono text-white break-all">{baseInspectUrl}</span>
                   </div>
@@ -369,8 +375,8 @@ export default function Dashboard() {
                       type="button"
                       onClick={() => setInspectTab(tab)}
                       className={`pb-2 px-1 text-sm font-medium transition-colors ${inspectTab === tab
-                          ? 'text-zinc-200 border-b-2 border-[#f26b3a]'
-                          : 'text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent'
+                        ? 'text-zinc-200 border-b-2 border-[#f26b3a]'
+                        : 'text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent'
                         }`}
                     >
                       {tab} {badgeCount > 0 && <span className="ml-1 text-xs text-[#4caf50]">({badgeCount})</span>}
@@ -411,13 +417,13 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-      
+
       {showSaveModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4" onClick={() => setShowSaveModal(null)}>
           <div className="bg-zinc-900 border border-zinc-700 rounded-xl max-w-md w-full shadow-2xl p-6" onClick={e => e.stopPropagation()}>
             <h2 className="text-xl font-bold text-white mb-4">Save Request as Template</h2>
             <p className="text-sm text-zinc-400 mb-6">This will construct a persistent Collection Blueprint for rapid rapid execution natively.</p>
-            
+
             <div className="space-y-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-zinc-400 mb-1">Template Name</label>
@@ -431,10 +437,10 @@ export default function Dashboard() {
                 />
               </div>
               <label className="flex items-center gap-3 cursor-pointer p-3 border border-zinc-700 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 transition">
-                <input 
-                  type="checkbox" 
-                  checked={templateIsGlobal} 
-                  onChange={e => setTemplateIsGlobal(e.target.checked)} 
+                <input
+                  type="checkbox"
+                  checked={templateIsGlobal}
+                  onChange={e => setTemplateIsGlobal(e.target.checked)}
                   className="w-5 h-5 accent-[#f26b3a] cursor-pointer"
                 />
                 <div>
@@ -443,7 +449,7 @@ export default function Dashboard() {
                 </div>
               </label>
             </div>
-            
+
             <div className="flex justify-end gap-3">
               <button onClick={() => setShowSaveModal(null)} className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition">Cancel</button>
               <button onClick={handleSaveCollection} className="px-4 py-2 bg-[#f26b3a] hover:bg-[#e65c2b] text-white text-sm font-medium rounded-lg shadow transition">Save Template</button>
