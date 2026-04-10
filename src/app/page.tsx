@@ -222,7 +222,7 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        <div className="bg-zinc-900 border border-[#333] rounded-xl overflow-hidden shadow-2xl">
+        <div className="bg-zinc-900 border border-[#333] rounded-xl shadow-2xl">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#2a2a2a] border-b border-[#333]">
@@ -281,27 +281,52 @@ export default function Dashboard() {
                   {auth.user.role === 'APPROVER' && <td className="p-4 text-sm text-zinc-400">{r.requester?.username || 'Unknown'}</td>}
                   <td className="p-4">
                     <div className="flex flex-wrap gap-2">
-                      {auth.user.role === 'APPROVER' && r.status === 'PENDING' && (
-                        <>
-                          <button disabled={loadingAction === `approve-${r.id}`} onClick={(e) => handleAction(e, r.id, 'approve')} className={`px-3 py-1.5 bg-green-600/10 hover:bg-green-600/20 text-[#4caf50] text-sm font-medium rounded transition cursor-pointer ${loadingAction === `approve-${r.id}` ? 'opacity-50 cursor-wait' : ''}`}>
+                      {/* APPROVER specific actions (Approve/Reject) - Only if NOT the requester */}
+                      {auth.user.role === 'APPROVER' && r.status === 'PENDING' && r.requesterId !== auth.user.id && (
+                        <div className="flex gap-2">
+                          <button
+                            disabled={loadingAction === `approve-${r.id}`}
+                            onClick={(e) => handleAction(e, r.id, 'approve')}
+                            className={`px-3 py-1.5 bg-green-600/10 hover:bg-green-600/20 text-[#4caf50] text-sm font-medium rounded transition cursor-pointer ${loadingAction === `approve-${r.id}` ? 'opacity-30 cursor-wait' : ''}`}
+                          >
                             {loadingAction === `approve-${r.id}` ? '...' : 'Approve'}
                           </button>
-                          <button disabled={loadingAction === `reject-${r.id}`} onClick={(e) => handleAction(e, r.id, 'reject')} className={`px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-[#f44336] text-sm font-medium rounded transition cursor-pointer ${loadingAction === `reject-${r.id}` ? 'opacity-50 cursor-wait' : ''}`}>
+                          <button
+                            disabled={loadingAction === `reject-${r.id}`}
+                            onClick={(e) => handleAction(e, r.id, 'reject')}
+                            className={`px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-[#f44336] text-sm font-medium rounded transition cursor-pointer ${loadingAction === `reject-${r.id}` ? 'opacity-30 cursor-wait' : ''}`}
+                          >
                             {loadingAction === `reject-${r.id}` ? '...' : 'Reject'}
                           </button>
-                        </>
+                        </div>
                       )}
-                      {auth.user.role === 'REQUESTER' && (
-                        <>
-                          {r.status === 'APPROVED' && (
-                            <button disabled={loadingAction === `execute-${r.id}`} onClick={(e) => handleAction(e, r.id, 'execute')} className={`px-3 py-1.5 bg-[#f26b3a] hover:bg-[#e65c2b] text-white text-sm font-medium rounded shadow transition ${loadingAction === `execute-${r.id}` ? 'opacity-70 cursor-wait' : 'cursor-pointer'}`}>
-                              {loadingAction === `execute-${r.id}` ? 'Executing...' : 'Execute'}
-                            </button>
-                          )}
-                          <button onClick={(e) => handleClone(e, r)} className="px-3 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-[#2196f3] text-sm font-medium rounded cursor-pointer transition tracking-wide">Clone</button>
-                          <button onClick={(e) => { e.stopPropagation(); setShowSaveModal(r) }} className="px-3 py-1.5 bg-purple-600/10 hover:bg-purple-600/20 text-purple-400 text-sm font-medium rounded cursor-pointer transition tracking-wide">Save as Template</button>
-                        </>
+
+                      {/* Requester Action (Execute) - Only if Approved and mine */}
+                      {r.requesterId === auth.user.id && r.status === 'APPROVED' && (
+                        <button disabled={loadingAction === `execute-${r.id}`} onClick={(e) => handleAction(e, r.id, 'execute')} className={`px-3 py-1.5 bg-[#f26b3a] hover:bg-[#e65c2b] text-white text-sm font-bold rounded shadow transition ${loadingAction === `execute-${r.id}` ? 'opacity-70 cursor-wait' : 'cursor-pointer'}`}>
+                          {loadingAction === `execute-${r.id}` ? 'Executing...' : 'Execute'}
+                        </button>
                       )}
+
+                      {/* Rapid Secondary Actions (Clone/Save) */}
+                      <div className="flex gap-1 ml-auto">
+                        <div className="relative group">
+                          <button onClick={(e) => handleClone(e, r)} className="p-1.5 hover:bg-zinc-800 text-zinc-500 hover:text-blue-400 rounded transition cursor-pointer">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
+                          </button>
+                          <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 bg-zinc-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-50 ring-1 ring-zinc-700 shadow-xl">
+                            Clone Request
+                          </span>
+                        </div>
+                        <div className="relative group">
+                          <button onClick={(e) => { e.stopPropagation(); setShowSaveModal(r) }} className="p-1.5 hover:bg-zinc-800 text-zinc-500 hover:text-purple-400 rounded transition cursor-pointer">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                          </button>
+                          <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 bg-zinc-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-50 ring-1 ring-zinc-700 shadow-xl">
+                            Save as Template
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -410,6 +435,69 @@ export default function Dashboard() {
                   }
                 </div>
               )}
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-6 border-t border-[#333] flex justify-between items-center bg-[#1a1a1a] rounded-b-xl">
+              <div className="flex gap-3">
+                {/* Secondary Actions */}
+                <div className="relative group">
+                  <button
+                    onClick={(e) => { handleClone(e, selectedRequest); setSelectedRequest(null); }}
+                    className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition border border-zinc-700 cursor-pointer flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
+                    Clone
+                  </button>
+                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-zinc-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-50 ring-1 ring-zinc-700">
+                    Create a copy of this request
+                  </span>
+                </div>
+                <div className="relative group">
+                  <button
+                    onClick={() => { setShowSaveModal(selectedRequest); setSelectedRequest(null); }}
+                    className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition border border-zinc-700 cursor-pointer flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                    Save as Template
+                  </button>
+                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-zinc-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-50 ring-1 ring-zinc-700">
+                    Store this as a reusable blueprint
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                {/* Primary Actions */}
+                {auth.user.role === 'APPROVER' && selectedRequest.status === 'PENDING' && selectedRequest.requesterId !== auth.user.id && (
+                  <>
+                    <button
+                      disabled={loadingAction === `approve-${selectedRequest.id}`}
+                      onClick={(e) => { handleAction(e, selectedRequest.id, 'approve'); setSelectedRequest(null); }}
+                      className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white text-sm font-bold rounded-lg shadow-lg transition cursor-pointer"
+                    >
+                      {loadingAction === `approve-${selectedRequest.id}` ? '...' : 'Approve Request'}
+                    </button>
+                    <button
+                      disabled={loadingAction === `reject-${selectedRequest.id}`}
+                      onClick={(e) => { handleAction(e, selectedRequest.id, 'reject'); setSelectedRequest(null); }}
+                      className="px-6 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded-lg shadow-lg transition cursor-pointer"
+                    >
+                      {loadingAction === `reject-${selectedRequest.id}` ? '...' : 'Reject'}
+                    </button>
+                  </>
+                )}
+
+                {selectedRequest.requesterId === auth.user.id && selectedRequest.status === 'APPROVED' && (
+                  <button
+                    disabled={loadingAction === `execute-${selectedRequest.id}`}
+                    onClick={(e) => { handleAction(e, selectedRequest.id, 'execute'); setSelectedRequest(null); }}
+                    className="px-8 py-2 bg-[#f26b3a] hover:bg-[#e65c2b] text-white text-sm font-bold rounded-lg shadow-lg transition cursor-pointer"
+                  >
+                    {loadingAction === `execute-${selectedRequest.id}` ? 'Executing...' : 'Execute Now'}
+                  </button>
+                )}
+              </div>
             </div>
 
           </div>
