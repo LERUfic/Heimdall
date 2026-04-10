@@ -1,29 +1,30 @@
 <h1 align="center">
-<img width="195" height="404" alt="Heimdall" align="center" src="https://github.com/user-attachments/assets/690de34e-0d27-4e2d-b1ce-2366e6ac1649" />  
+<img height="404" alt="Heimdall" align="center" src="https://github.com/user-attachments/assets/690de34e-0d27-4e2d-b1ce-2366e6ac1649" />  
 </h1>
 <h1 align="center">
 Heimdall HTTP Approval Platform
 </h1>
-
-Heimdall is a secure, role-based HTTP Request Management and Execution platform built with Next.js 16. It acts as an intermediate approval layer for sensitive internal API requests, requiring designated approvers to vet payloads before they are physically executed on the backend network.
+Heimdall is a secure, role-based HTTP Request Approval System built with Next.js 16. It acts as an intermediate governance layer for sensitive internal API requests, requiring designated approvers to vet payloads before they are physically executed on the backend network.
 
 ## 🌟 Core Features
 
 - **Flexible Authentication**: Natively supports both legacy Active Directory / LDAP and modern Enterprise SSO (OpenID Connect via Google, Keycloak, Auth0) out-of-the-box using a simple `AUTH_MODE` toggle.
 - **Role-Based Access Control (RBAC)**: Users are systematically classified strictly as `REQUESTER` or `APPROVER` dynamically via whitelist environment constraints.
+- **Request Collections (Templates)**: High-density management of reusable request blueprints. Supports direct template creation, custom visibility (Global/Private), and full feature parity with the main dashboard (Auth, Params, Headers).
 - **Granular Payload Construction**: Full GUI support for mapping URL search parameters, Header key-values (with dynamic Basic/Bearer Auth injection), and raw JSON bodies.
-- **Structured JSON Audit Trails**: A zero-dependency metadata flattening logger outputs strictly formatted non-nested JSON strings natively to `stdout` across all endpoint lifecycles—making Heimdall instantly plug-and-play with scraping infrastructures like Datadog, ELK, or Loki.
+- **Audit Transparency**: Detailed audit trails for all request lifecycles. Rejections now capture `rejectedBy` and `rejectedAt` metadata for full accountability.
+- **Structured JSON Logs**: A zero-dependency metadata flattening logger outputs strictly formatted non-nested JSON strings natively to `stdout`—perfect for Datadog, ELK, or Loki.
 - **Request Cloning**: Easily clone and mutate existing/historical requests into new drafts natively from the dashboard.
-- **Execution Telemetry**: Once an approved request is successfully executed by the server, the raw payload response and corresponding network latency mapped via `performance.now()` are permanently attached to the ticket for post-mortem inspection.
+- **Execution Telemetry**: Permanent attachment of raw response data and network latency (mapped via `performance.now()`) to executed tickets.
 
 ## 📷 Screenshots
-<img width="1800" height="1039" alt="Screenshot 2026-04-09 at 13 22 45" src="https://github.com/user-attachments/assets/3d5de97e-0c82-40bf-9d4f-c4670923b4f7" />
-<img width="1799" height="1039" alt="Screenshot 2026-04-09 at 13 22 55" src="https://github.com/user-attachments/assets/492434fb-d7b8-4a2b-b0f9-ec29f44b704d" />
-<img width="1800" height="1037" alt="Screenshot 2026-04-09 at 13 23 05" src="https://github.com/user-attachments/assets/b653c720-8eeb-4032-af72-92d234fb497d" />
-<img width="1800" height="1037" alt="Screenshot 2026-04-09 at 13 23 25" src="https://github.com/user-attachments/assets/a44887f3-6a00-4370-a6ea-2e2d0550afd8" />
-<img width="1800" height="1039" alt="Screenshot 2026-04-09 at 13 23 35" src="https://github.com/user-attachments/assets/41cf04fd-a928-4149-8e69-bd25cddbb9b7" />
-<img width="1800" height="1038" alt="Screenshot 2026-04-09 at 13 23 48" src="https://github.com/user-attachments/assets/b984fd26-52ac-484f-a222-66dfb56c3e05" />
-<img width="1800" height="1038" alt="Screenshot 2026-04-09 at 13 24 04" src="https://github.com/user-attachments/assets/a483b91c-6f2f-40c6-a1ba-ed9176024a97" />
+<img height="1039" alt="Screenshot 2026-04-09 at 13 22 45" src="https://github.com/user-attachments/assets/3d5de97e-0c82-40bf-9d4f-c4670923b4f7" />
+<img height="1039" alt="Screenshot 2026-04-09 at 13 22 55" src="https://github.com/user-attachments/assets/492434fb-d7b8-4a2b-b0f9-ec29f44b704d" />
+<img height="1037" alt="Screenshot 2026-04-09 at 13 23 05" src="https://github.com/user-attachments/assets/b653c720-8eeb-4032-af72-92d234fb497d" />
+<img height="1037" alt="Screenshot 2026-04-09 at 13 23 25" src="https://github.com/user-attachments/assets/a44887f3-6a00-4370-a6ea-2e2d0550afd8" />
+<img height="1039" alt="Screenshot 2026-04-09 at 13 23 35" src="https://github.com/user-attachments/assets/41cf04fd-a928-4149-8e69-bd25cddbb9b7" />
+<img height="1038" alt="Screenshot 2026-04-09 at 13 23 48" src="https://github.com/user-attachments/assets/b984fd26-52ac-484f-a222-66dfb56c3e05" />
+<img height="1038" alt="Screenshot 2026-04-09 at 13 24 04" src="https://github.com/user-attachments/assets/a483b91c-6f2f-40c6-a1ba-ed9176024a97" />
 
 
 
