@@ -217,11 +217,9 @@ export default function Dashboard() {
               className="w-full max-w-md bg-[#2a2a2a] border border-[#333] px-4 py-2 rounded-lg text-sm text-zinc-300 outline-none focus:border-[#f26b3a] transition shadow-inner"
             />
           </div>
-          {auth.user.role === 'REQUESTER' && (
-            <Link href="/create" className="bg-[#f26b3a] hover:bg-[#e65c2b] text-white px-5 py-2 rounded-lg font-medium shadow-lg transition tracking-wide flex-shrink-0">
-              + New Request
-            </Link>
-          )}
+          <Link href="/create" className="bg-[#f26b3a] hover:bg-[#e65c2b] text-white px-5 py-2 rounded-lg font-medium shadow-lg transition tracking-wide flex-shrink-0">
+            + New Request
+          </Link>
         </div>
 
         <div className="bg-zinc-900 border border-[#333] rounded-xl overflow-hidden shadow-2xl">
@@ -240,7 +238,7 @@ export default function Dashboard() {
             <tbody>
               {reqs.requests.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-6 text-center text-zinc-500 text-sm">No requests found.</td>
+                  <td colSpan={7} className="p-6 text-center text-zinc-500 text-sm">No requests found.</td>
                 </tr>
               )}
               {reqs.requests.map((r: any) => (

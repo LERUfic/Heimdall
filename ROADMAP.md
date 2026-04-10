@@ -9,3 +9,8 @@ Long-term Goals
 [ ] Threaded Discussions: Implement a conversation thread for each individual request to centralize communication.
 [ ] Task Automation: Develop a scheduler to execute requests automatically at defined intervals.
 [ ] Heimdall CLI: Launch a command-line interface to manage, submit, and approve requests directly from the terminal.
+
+Bug Fixes
+[x] add show password button on login page
+[x] No requests found. not center at main page
+[x] approver can make a request but must be approve by another approver (not by themself)

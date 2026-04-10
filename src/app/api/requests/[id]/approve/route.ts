@@ -10,7 +10,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const request = await prisma.httpRequest.update({
+  const request = await prisma.httpRequest.findUnique({
+    where: { id: p.id }
+  })
+  if (!request) {
+    return NextResponse.json({ error: 'Request not found' }, { status: 404 })
+  }
+
+  if (request.requesterId === session.id) {
+    return NextResponse.json({ error: 'You cannot approve your own request' }, { status: 403 })
+  }
+
+  await prisma.httpRequest.update({
     where: { id: p.id },
     data: {
       status: 'APPROVED',
