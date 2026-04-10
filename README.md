@@ -1,5 +1,5 @@
 <h1 align="center">
-<img height="404" alt="Heimdall" align="center" src="https://github.com/user-attachments/assets/690de34e-0d27-4e2d-b1ce-2366e6ac1649" />  
+<img height="200" alt="Heimdall" align="center" src="https://github.com/user-attachments/assets/690de34e-0d27-4e2d-b1ce-2366e6ac1649" />  
 </h1>
 <h1 align="center">
 Heimdall HTTP Approval Platform
