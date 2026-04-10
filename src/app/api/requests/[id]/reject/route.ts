@@ -14,7 +14,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     where: { id: p.id },
     data: {
       status: 'REJECTED',
-      approverId: session.id
+      approverId: session.id,
+      rejectedAt: new Date()
     }
   })
 

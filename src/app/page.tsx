@@ -197,7 +197,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-zinc-400 text-sm">Logged in as <span className="text-white font-medium">{auth.user.username}</span> ({auth.user.role})</span>
-            <button onClick={handleLogout} className="px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 text-white rounded-md transition ring-1 ring-zinc-700">Logout</button>
+            <button onClick={handleLogout} className="px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 text-white rounded-md transition ring-1 ring-zinc-700 cursor-pointer">Logout</button>
           </div>
         </div>
 
@@ -279,10 +279,10 @@ export default function Dashboard() {
                     <div className="flex flex-wrap gap-2">
                       {auth.user.role === 'APPROVER' && r.status === 'PENDING' && (
                         <>
-                          <button disabled={loadingAction === `approve-${r.id}`} onClick={(e) => handleAction(e, r.id, 'approve')} className={`px-3 py-1.5 bg-green-600/10 hover:bg-green-600/20 text-[#4caf50] text-sm font-medium rounded transition ${loadingAction === `approve-${r.id}` ? 'opacity-50 cursor-wait' : ''}`}>
+                          <button disabled={loadingAction === `approve-${r.id}`} onClick={(e) => handleAction(e, r.id, 'approve')} className={`px-3 py-1.5 bg-green-600/10 hover:bg-green-600/20 text-[#4caf50] text-sm font-medium rounded transition cursor-pointer ${loadingAction === `approve-${r.id}` ? 'opacity-50 cursor-wait' : ''}`}>
                             {loadingAction === `approve-${r.id}` ? '...' : 'Approve'}
                           </button>
-                          <button disabled={loadingAction === `reject-${r.id}`} onClick={(e) => handleAction(e, r.id, 'reject')} className={`px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-[#f44336] text-sm font-medium rounded transition ${loadingAction === `reject-${r.id}` ? 'opacity-50 cursor-wait' : ''}`}>
+                          <button disabled={loadingAction === `reject-${r.id}`} onClick={(e) => handleAction(e, r.id, 'reject')} className={`px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-[#f44336] text-sm font-medium rounded transition cursor-pointer ${loadingAction === `reject-${r.id}` ? 'opacity-50 cursor-wait' : ''}`}>
                             {loadingAction === `reject-${r.id}` ? '...' : 'Reject'}
                           </button>
                         </>
@@ -337,6 +337,11 @@ export default function Dashboard() {
                       {selectedRequest.approvedAt && (
                         <span className="text-[#4caf50] bg-green-900/20 px-2 py-1 rounded-full">
                           Apprv By: {selectedRequest.approver?.username || 'System'} • {new Date(selectedRequest.approvedAt).toLocaleString()}
+                        </span>
+                      )}
+                      {selectedRequest.rejectedAt && (
+                        <span className="text-[#f44336] bg-red-900/20 px-2 py-1 rounded-full">
+                          Rej By: {selectedRequest.approver?.username || 'System'} • {new Date(selectedRequest.rejectedAt).toLocaleString()}
                         </span>
                       )}
                       {selectedRequest.executedAt && (

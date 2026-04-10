@@ -33,6 +33,7 @@ model HttpRequest {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   approvedAt  DateTime?
+  rejectedAt  DateTime?
   executedAt  DateTime?
 }
 

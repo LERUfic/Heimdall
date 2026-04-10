@@ -111,7 +111,7 @@ export default function Collections() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-zinc-400 text-sm">Logged in as <span className="text-white font-medium">{auth.user.username}</span> ({auth.user.role})</span>
-            <button onClick={handleLogout} className="px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 text-white rounded-md transition ring-1 ring-zinc-700">Logout</button>
+            <button onClick={handleLogout} className="px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 text-white rounded-md transition ring-1 ring-zinc-700 cursor-pointer">Logout</button>
           </div>
         </div>
 
@@ -131,75 +131,95 @@ export default function Collections() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {cols.collections.length === 0 && (
-            <div className="col-span-full py-12 text-center border border-[#333] border-dashed rounded-xl bg-[#212121]">
-              <p className="text-zinc-500 font-medium mb-2">No collections found.</p>
-              <p className="text-sm text-zinc-600">Head over to the Dashboard to clone and save a successful Payload Template!</p>
-            </div>
-          )}
-
-          {cols.collections.filter((c: any) => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.url.toLowerCase().includes(searchQuery.toLowerCase())).map((c: any) => (
-            <div key={c.id} className="bg-[#212121] border border-[#333] rounded-xl overflow-hidden hover:border-[#555] transition flex flex-col group">
-              <div onClick={() => { setInspectCollection(c); setInspectTab('Params') }} className="p-5 flex-grow cursor-pointer group-hover:bg-[#252525] transition-colors">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-bold text-lg text-white break-words group-hover:text-[#f26b3a] transition-colors">
-                    {c.name}
-                  </h3>
-                  {c.isGlobal ? (
-                    <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/20 whitespace-nowrap ml-2">Global</span>
-                  ) : (
-                    <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-xs font-semibold rounded-full border border-zinc-700 whitespace-nowrap ml-2">Private</span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2 mb-4">
-                  <span className={`font-semibold tracking-wider text-[10px] uppercase px-1.5 py-0.5 rounded ${c.method === 'GET' ? 'bg-[#4caf50]/20 text-[#4caf50]' :
-                    c.method === 'POST' ? 'bg-[#ffb300]/20 text-[#ffb300]' :
-                      c.method === 'PUT' ? 'bg-[#2196f3]/20 text-[#2196f3]' :
-                        c.method === 'PATCH' ? 'bg-[#9c27b0]/20 text-[#9c27b0]' : 'bg-[#f44336]/20 text-[#f44336]'}`}>
-                    {c.method}
-                  </span>
-                  <span className="text-xs font-mono text-zinc-400 truncate" title={c.url}>{c.url}</span>
-                </div>
-
-                <div className="text-xs text-zinc-600 mb-1">
-                  <span className="font-medium text-zinc-500">Author:</span> {c.creator?.username} • {new Date(c.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-
-              <div className="border-t border-[#333] bg-[#1a1a1a] p-3 flex gap-2 justify-end">
-                <button
-                  onClick={() => handleDraft(c)}
-                  className="flex-1 bg-[#2a2a2a] hover:bg-[#f26b3a] text-zinc-300 hover:text-white px-3 py-1.5 text-sm font-semibold rounded transition shadow-sm"
+        <div className="bg-zinc-900 border border-[#333] rounded-xl overflow-hidden shadow-2xl">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[#2a2a2a] border-b border-[#333]">
+                <th className="p-4 font-semibold text-xs tracking-wider text-zinc-400">NAME & CREATOR</th>
+                <th className="p-4 font-semibold text-xs tracking-wider text-zinc-400">METHOD</th>
+                <th className="p-4 font-semibold text-xs tracking-wider text-zinc-400">URL</th>
+                <th className="p-4 font-semibold text-xs tracking-wider text-zinc-400">VISIBILITY</th>
+                <th className="p-4 font-semibold text-xs tracking-wider text-zinc-400">CREATED</th>
+                <th className="p-4 font-semibold text-xs tracking-wider text-zinc-400 text-right">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cols.collections.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="p-12 text-center text-zinc-500 text-sm">
+                    No collections found. Head over to the Dashboard to save a Payload Template!
+                  </td>
+                </tr>
+              )}
+              {cols.collections.filter((c: any) => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.url.toLowerCase().includes(searchQuery.toLowerCase())).map((c: any) => (
+                <tr
+                  key={c.id}
+                  onClick={() => { setInspectCollection(c); setInspectTab('Params') }}
+                  className="border-b border-[#333] last:border-b-0 hover:bg-[#252525] transition cursor-pointer group"
                 >
-                  Create Draft Request
-                </button>
-                {(c.creatorId === auth.user.id || auth.user.role === 'APPROVER') && (
-                  <>
-                    <button
-                      onClick={() => handleToggleGlobal(c)}
-                      title={c.isGlobal ? "Make Private" : "Share Globally"}
-                      className="flex items-center gap-1.5 px-2 bg-zinc-800 border border-zinc-700 hover:border-emerald-600/50 rounded transition cursor-pointer"
-                    >
-                      <span className={`text-xs font-semibold ${c.isGlobal ? 'text-emerald-400' : 'text-zinc-500'}`}>Global</span>
-                      <div className={`w-7 h-3.5 rounded-full relative transition-colors ${c.isGlobal ? 'bg-emerald-500' : 'bg-zinc-600'}`}>
-                        <div className={`absolute top-0.5 left-0.5 w-2.5 h-2.5 rounded-full bg-white transition-transform ${c.isGlobal ? 'translate-x-3.5' : 'translate-x-0'}`} />
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(c.id)}
-                      className="bg-red-900/20 hover:bg-red-600 border border-red-900/50 hover:border-red-600 text-red-500 hover:text-white px-3 py-1.5 text-sm font-semibold rounded transition"
-                      title="Delete"
-                    >
-                      Delete
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
+                  <td className="p-4">
+                    <div className="font-bold text-white group-hover:text-[#f26b3a] transition-colors">{c.name}</div>
+                    <div className="text-[10px] text-zinc-500 uppercase tracking-tight mt-0.5">By {c.creator?.username || 'Unknown'}</div>
+                  </td>
+                  <td className="p-4">
+                    <span className={`font-semibold tracking-wider text-xs px-2 py-0.5 rounded ${c.method === 'GET' ? 'bg-[#4caf50]/10 text-[#4caf50]' :
+                      c.method === 'POST' ? 'bg-[#ffb300]/10 text-[#ffb300]' :
+                        c.method === 'PUT' ? 'bg-[#2196f3]/10 text-[#2196f3]' :
+                          c.method === 'PATCH' ? 'bg-[#9c27b0]/10 text-[#9c27b0]' : 'bg-[#f44336]/10 text-[#f44336]'
+                      }`}>{c.method}</span>
+                  </td>
+                  <td className="p-4 text-zinc-400 font-mono text-xs max-w-[200px] truncate" title={c.url}>
+                    {c.url}
+                  </td>
+                  <td className="p-4">
+                    {c.isGlobal ? (
+                      <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase rounded border border-blue-500/20">Global</span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-zinc-800 text-zinc-500 text-[10px] font-bold uppercase rounded border border-zinc-700">Private</span>
+                    )}
+                  </td>
+                  <td className="p-4 text-zinc-500 text-xs font-medium">
+                    {new Date(c.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleDraft(c)}
+                        className="px-3 py-1.5 bg-[#f26b3a] hover:bg-[#e65c2b] text-white text-xs font-bold rounded shadow transition whitespace-nowrap cursor-pointer"
+                      >
+                        Draft
+                      </button>
+                      {(c.creatorId === auth.user.id || auth.user.role === 'APPROVER') && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleToggleGlobal(c)}
+                            title={c.isGlobal ? "Make Private" : "Share Globally"}
+                            className={`p-1.5 rounded border transition-colors cursor-pointer ${c.isGlobal ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400' : 'bg-zinc-800 border-zinc-700 text-zinc-500 hover:text-white'}`}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(c.id)}
+                            className="p-1.5 bg-red-900/10 hover:bg-red-600 border border-red-900/50 hover:border-red-600 text-red-500 hover:text-white rounded transition cursor-pointer"
+                            title="Delete"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 000-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+
       </div>
 
       {inspectCollection && (() => {
@@ -287,7 +307,7 @@ export default function Collections() {
                 <button onClick={() => setInspectCollection(null)} className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition">
                   Close
                 </button>
-                <button onClick={() => { setInspectCollection(null); handleDraft(inspectCollection) }} className="px-5 py-2 bg-[#f26b3a] hover:bg-[#e65c2b] text-white font-semibold rounded-lg shadow-md transition">
+                <button onClick={() => { setInspectCollection(null); handleDraft(inspectCollection) }} className="px-5 py-2 bg-[#f26b3a] hover:bg-[#e65c2b] text-white font-semibold rounded-lg shadow-md transition cursor-pointer">
                   Create Draft Request
                 </button>
               </div>
