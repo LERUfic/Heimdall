@@ -1,17 +1,31 @@
 import type { NextConfig } from "next";
 import os from "os";
 
-// Dynamically generate host origin strings matching the physical server's transient IPs to bypass HMR blocking
+// 1. Get the container's internal IPs
 const interfaces = os.networkInterfaces();
 const validIps = Object.values(interfaces)
   .flat()
   .filter((i) => i?.family === 'IPv4')
   .map((i) => i?.address as string);
 
+// 2. Allow explicitly defined hostnames (via Env) OR fallback to localhost
+const allowedExternalOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['localhost:3000', '127.0.0.1:3000'];
+
 const nextConfig: NextConfig = {
   /* config options here */
-  // @ts-ignore -- Some localized typings might not reflect Next 15 standard directly
-  allowedDevOrigins: validIps
+
+  // @ts-ignore -- Custom/localized typing 
+  allowedDevOrigins: [...validIps, ...allowedExternalOrigins],
+
+  // Note: If your login is failing due to Next.js 14+ Server Actions, 
+  // you likely also need to explicitly whitelist them here:
+  experimental: {
+    serverActions: {
+      allowedOrigins: [...validIps, ...allowedExternalOrigins],
+    },
+  },
 };
 
 export default nextConfig;
