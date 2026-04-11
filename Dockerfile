@@ -8,9 +8,11 @@ RUN apk add --no-cache openssl
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Copy Prisma directory and generate client before building Next.js
+# Copy Prisma/Scripts and handle database provider selection
+ARG DATABASE_PROVIDER=sqlite
 COPY prisma ./prisma/
-RUN npx prisma generate
+COPY scripts ./scripts/
+RUN npx --yes tsx scripts/configure-db.ts ${DATABASE_PROVIDER}
 
 COPY . .
 

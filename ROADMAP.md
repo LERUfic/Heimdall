@@ -3,7 +3,7 @@ Short-term Goals
 [X] Enhanced Auditing: Implement a structured JSON logging system for comprehensive audit trails.
 [x] Request Templating: Enable saving request collections to streamline repeatability.
 [x] Pre-approval Modification: Allow administrators or users to edit requests prior to final approval.
-[ ] Database Portability: Support for multiple database backends (SQLite or MySQL).
+[x] Database Portability: Support for multiple database backends (SQLite or MySQL).
 
 Long-term Goals
 [ ] Threaded Discussions: Implement a conversation thread for each individual request to centralize communication.
@@ -22,3 +22,7 @@ Developments
 [ ] Contribution guidelines
 [ ] Add more documentation
 [ ] Create multiple deployment mode like native, docker, helm, ansible.
+
+Need to be Tested Features
+[ ] SSO integration
+[ ] MySQL integration

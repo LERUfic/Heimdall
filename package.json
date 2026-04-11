@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:sqlite": "npx --yes tsx scripts/configure-db.ts sqlite",
+    "db:mysql": "npx --yes tsx scripts/configure-db.ts mysql"
   },
   "dependencies": {
     "@prisma/client": "^5.21.1",
