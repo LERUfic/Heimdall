@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npx --yes tsx scripts/configure-db.ts ${DATABASE_PROVIDER:-sqlite} && npx prisma db push --accept-data-loss && next build",
+    "build": "npx --yes tsx scripts/configure-db.ts ${DATABASE_PROVIDER:-sqlite} && next build",
     "start": "next start",
     "lint": "eslint",
     "db:sqlite": "npx --yes tsx scripts/configure-db.ts sqlite",
