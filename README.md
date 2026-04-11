@@ -32,7 +32,7 @@ Heimdall is a secure, role-based HTTP Request Approval System built with Next.js
 
 - **Framework**: Next.js 16 (App Router + React)
 - **Styling**: Tailwind CSS 
-- **Database**: Prisma ORM with SQLite backend (Easily swappable to SQLite/PostgreSQL/MySQL)
+- **Database**: Prisma ORM with SQLite backend (Easily swappable to PostgreSQL/MySQL)
 - **Authentication**: Dual-mode engine utilizing `ldap-authentication` for Active Directory and vanilla `fetch()` + `jose` for pure natively validated OAuth2 (OIDC) JSON Web Tokens.
 
 ## 🚀 QuickStart (Local Development)
