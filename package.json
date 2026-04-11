@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:sqlite": "npx --yes tsx scripts/configure-db.ts sqlite",
-    "db:mysql": "npx --yes tsx scripts/configure-db.ts mysql"
+    "db:mysql": "npx --yes tsx scripts/configure-db.ts mysql",
+    "db:postgres": "npx --yes tsx scripts/configure-db.ts postgresql"
   },
   "dependencies": {
     "@prisma/client": "^5.21.1",

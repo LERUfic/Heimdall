@@ -9,6 +9,7 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Copy Prisma/Scripts and handle database provider selection
+# DATABASE_PROVIDER options: sqlite, mysql, postgresql
 ARG DATABASE_PROVIDER=sqlite
 COPY prisma ./prisma/
 COPY scripts ./scripts/

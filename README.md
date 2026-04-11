@@ -79,15 +79,16 @@ Heimdall is a secure, role-based HTTP Request Approval System built with Next.js
 
 ## 🗄️ Database Portability
 
-Heimdall is designed for zero-config local development with SQLite, but supports MySQL for production scalability.
+Heimdall is designed for zero-config local development with SQLite, but supports MySQL and PostgreSQL for production scalability.
 
-### Switch to MySQL
-1.  Verify your MySQL server is running and you have a database created.
+### Switch to MySQL or PostgreSQL
+1.  Verify your database server is running and you have a database created.
 2.  Switch the project configuration:
     ```bash
-    npm run db:mysql
+    npm run db:mysql     # For MySQL
+    npm run db:postgres  # For PostgreSQL
     ```
-3.  Update `DATABASE_URL` in `.env` to your MySQL string (see `.env.example`).
+3.  Update `DATABASE_URL` in `.env` to your connection string (see `.env.example`).
 4.  Apply the schema and generate the client:
     ```bash
     npx prisma migrate dev --name init
