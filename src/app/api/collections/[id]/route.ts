@@ -44,13 +44,21 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
 
   const updated = await prisma.requestCollection.update({
     where: { id: params.id },
-    data: { isGlobal: p.isGlobal }
+    data: { 
+      name: p.name ?? collection.name,
+      method: p.method ?? collection.method,
+      url: p.url ?? collection.url,
+      headers: p.headers !== undefined ? p.headers : collection.headers,
+      body: p.body !== undefined ? p.body : collection.body,
+      isGlobal: p.isGlobal !== undefined ? p.isGlobal : collection.isGlobal 
+    }
   })
 
   logger.info({
-    event: 'COLLECTION_VISIBILITY_CHANGED',
+    event: 'COLLECTION_UPDATED',
     userId: session.id,
-    metadata: { collectionId: params.id, isGlobal: p.isGlobal }
+    username: session.username,
+    metadata: { collectionId: params.id, changes: p }
   })
 
   return NextResponse.json({ collection: updated })

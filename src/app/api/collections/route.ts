@@ -7,13 +7,15 @@ export async function GET(req: Request) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const whereClause = session.role === 'APPROVER' ? {} : {
+    OR: [
+      { isGlobal: true },
+      { creatorId: session.id }
+    ]
+  }
+
   const collections = await prisma.requestCollection.findMany({
-    where: {
-      OR: [
-        { isGlobal: true },
-        { creatorId: session.id }
-      ]
-    },
+    where: whereClause,
     include: {
       creator: {
         select: { username: true, role: true }

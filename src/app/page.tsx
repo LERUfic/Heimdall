@@ -310,6 +310,17 @@ export default function Dashboard() {
 
                       {/* Rapid Secondary Actions (Clone/Save) */}
                       <div className="flex gap-1 ml-auto">
+                        {/* Edit Action - Only if PENDING and user is owner or approver */}
+                        {r.status === 'PENDING' && (r.requesterId === auth.user.id || auth.user.role === 'APPROVER') && (
+                          <div className="relative group">
+                            <Link href={`/edit/${r.id}`} className="p-1.5 hover:bg-zinc-800 text-zinc-500 hover:text-yellow-400 rounded transition cursor-pointer flex items-center justify-center">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            </Link>
+                            <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 bg-zinc-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-50 ring-1 ring-zinc-700 shadow-xl">
+                              Edit Request
+                            </span>
+                          </div>
+                        )}
                         <div className="relative group">
                           <button onClick={(e) => handleClone(e, r)} className="p-1.5 hover:bg-zinc-800 text-zinc-500 hover:text-blue-400 rounded transition cursor-pointer">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
@@ -453,6 +464,20 @@ export default function Dashboard() {
                     Create a copy of this request
                   </span>
                 </div>
+                {selectedRequest.status === 'PENDING' && (selectedRequest.requesterId === auth.user.id || auth.user.role === 'APPROVER') && (
+                  <div className="relative group">
+                    <Link
+                      href={`/edit/${selectedRequest.id}`}
+                      className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition border border-zinc-700 cursor-pointer flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                      Edit Details
+                    </Link>
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-zinc-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-50 ring-1 ring-zinc-700">
+                      Modify fields before approval
+                    </span>
+                  </div>
+                )}
                 <div className="relative group">
                   <button
                     onClick={() => { setShowSaveModal(selectedRequest); setSelectedRequest(null); }}

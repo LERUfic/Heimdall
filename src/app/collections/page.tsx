@@ -27,6 +27,9 @@ export default function Collections() {
   const [newBasicPass, setNewBasicPass] = useState('')
   const [newBody, setNewBody] = useState('')
   const [newIsGlobal, setNewIsGlobal] = useState(false)
+  const [editCollectionId, setEditCollectionId] = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
@@ -113,19 +116,90 @@ export default function Collections() {
     router.push('/create')
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this template?")) return
-    const res = await fetch(`/api/collections/${id}`, { method: 'DELETE' })
-    if (res.ok) {
-      mutate()
-      showToast('Template deleted successfully', 'success')
-    } else {
-      const err = await res.json()
-      showToast('Failed: ' + err.error, 'error')
+  const handleDelete = async () => {
+    if (!deleteId) return
+    setIsDeleting(true)
+    try {
+      const res = await fetch(`/api/collections/${deleteId}`, { method: 'DELETE' })
+      if (res.ok) {
+        mutate()
+        showToast('Template deleted successfully', 'success')
+        setDeleteId(null)
+      } else {
+        const err = await res.json()
+        showToast('Failed: ' + err.error, 'error')
+      }
+    } catch (err) {
+      showToast('Network error')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
-  const handleCreateCollection = async (e: React.FormEvent) => {
+  const handleEditStart = (e: React.MouseEvent, c: any) => {
+    e.stopPropagation()
+    setEditCollectionId(c.id)
+    setNewName(c.name)
+    setNewMethod(c.method)
+    setNewBody(c.body || '')
+    setNewIsGlobal(c.isGlobal)
+    
+    // Parse URL and Params
+    let targetUrl = c.url || ''
+    try {
+      const u = new URL(targetUrl)
+      const pArr: { key: string, value: string }[] = []
+      u.searchParams.forEach((v, k) => pArr.push({ key: k, value: v }))
+      setNewParamsArr(pArr.length > 0 ? [...pArr, { key: '', value: '' }] : [{ key: '', value: '' }])
+      targetUrl = u.origin + u.pathname
+    } catch(e) {
+      setNewParamsArr([{ key: '', value: '' }])
+    }
+    setNewUrl(targetUrl)
+
+    // Parse Headers and Auth
+    if (c.headers) {
+      try {
+        const hObj = JSON.parse(c.headers)
+        const hArr: { key: string, value: string }[] = []
+        let authFound = false
+        Object.entries(hObj).forEach(([k, v]) => {
+          if (k.toLowerCase() === 'authorization') {
+            const val = v as string
+            if (val.startsWith('Bearer ')) {
+              setNewAuthType('Bearer Token')
+              setNewBearerToken(val.substring(7))
+              authFound = true
+            } else if (val.startsWith('Basic ')) {
+              setNewAuthType('Basic Auth')
+              try {
+                const decoded = atob(val.substring(6))
+                const [user, ...pass] = decoded.split(':')
+                setNewBasicUser(user)
+                setNewBasicPass(pass.join(':'))
+                authFound = true
+              } catch(e) {}
+            } else {
+              hArr.push({ key: k, value: val })
+            }
+          } else {
+            hArr.push({ key: k, value: v as string })
+          }
+        })
+        if (!authFound) setNewAuthType('None')
+        setNewHeadersArr(hArr.length > 0 ? [...hArr, { key: '', value: '' }] : [{ key: '', value: '' }])
+      } catch(e) {
+        setNewHeadersArr([{ key: '', value: '' }])
+      }
+    } else {
+      setNewHeadersArr([{ key: '', value: '' }])
+      setNewAuthType('None')
+    }
+
+    setShowCreateModal(true)
+  }
+
+  const handleSaveCollection = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newName || !newUrl) {
       showToast('Name and URL are required', 'error')
@@ -160,8 +234,9 @@ export default function Collections() {
     }
 
     try {
-      const res = await fetch('/api/collections', {
-        method: 'POST',
+      const url = editCollectionId ? `/api/collections/${editCollectionId}` : '/api/collections'
+      const res = await fetch(url, {
+        method: editCollectionId ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newName,
@@ -176,8 +251,9 @@ export default function Collections() {
       if (res.ok) {
         mutate()
         setShowCreateModal(false)
-        showToast('Template created successfully', 'success')
+        showToast(editCollectionId ? 'Template updated successfully' : 'Template created successfully', 'success')
         // Reset form
+        setEditCollectionId(null)
         setNewName('')
         setNewMethod('GET')
         setNewUrl('')
@@ -254,7 +330,21 @@ export default function Collections() {
               />
             </div>
             <button
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => {
+                setEditCollectionId(null)
+                setNewName('')
+                setNewMethod('GET')
+                setNewUrl('')
+                setNewParamsArr([{ key: '', value: '' }])
+                setNewHeadersArr([{ key: '', value: '' }])
+                setNewAuthType('None')
+                setNewBearerToken('')
+                setNewBasicUser('')
+                setNewBasicPass('')
+                setNewBody('')
+                setNewIsGlobal(false)
+                setShowCreateModal(true)
+              }}
               className="bg-[#f26b3a] hover:bg-[#e65c2b] text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition shadow-lg cursor-pointer whitespace-nowrap"
             >
               <span>+</span>
@@ -324,6 +414,15 @@ export default function Collections() {
                       {(c.creatorId === auth.user.id || auth.user.role === 'APPROVER') && (
                         <div className="flex items-center gap-2">
                           <button
+                            onClick={(e) => handleEditStart(e, c)}
+                            title="Edit Template"
+                            className="p-1.5 bg-yellow-500/10 border border-yellow-500/50 text-yellow-500 hover:bg-yellow-500 hover:text-white rounded transition cursor-pointer"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                          </button>
+                          <button
                             onClick={() => handleToggleGlobal(c)}
                             title={c.isGlobal ? "Make Private" : "Share Globally"}
                             className={`p-1.5 rounded border transition-colors cursor-pointer ${c.isGlobal ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300' : 'bg-zinc-800 border-zinc-700 text-zinc-500 hover:text-white hover:border-zinc-500'}`}
@@ -334,7 +433,7 @@ export default function Collections() {
                             </svg>
                           </button>
                           <button
-                            onClick={() => handleDelete(c.id)}
+                            onClick={(e) => { e.stopPropagation(); setDeleteId(c.id); }}
                             className="p-1.5 bg-red-900/10 hover:bg-red-600 border border-red-900/50 hover:border-red-600 text-red-500 hover:text-white rounded transition cursor-pointer"
                             title="Delete"
                           >
@@ -355,19 +454,19 @@ export default function Collections() {
       </div>
 
       {showCreateModal && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 p-4" onClick={() => setShowCreateModal(false)}>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 p-4" onClick={() => { setShowCreateModal(false); setEditCollectionId(null); }}>
           <form
-            onSubmit={handleCreateCollection}
+            onSubmit={handleSaveCollection}
             className="bg-[#212121] border border-[#333] rounded-xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl relative"
             onClick={e => e.stopPropagation()}
           >
             <div className="p-6 pb-2">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h2 className="text-xl font-bold text-white tracking-tight">Create Request Template</h2>
-                  <p className="text-xs text-zinc-500 mt-1 uppercase tracking-widest font-mono">Blueprint Construction Mode</p>
+                  <h2 className="text-xl font-bold text-white tracking-tight">{editCollectionId ? 'Edit Request Template' : 'Create Request Template'}</h2>
+                  <p className="text-xs text-zinc-500 mt-1 uppercase tracking-widest font-mono">{editCollectionId ? 'Update Existing Blueprint' : 'Blueprint Construction Mode'}</p>
                 </div>
-                <button type="button" onClick={() => setShowCreateModal(false)} className="text-zinc-500 hover:text-white transition text-2xl font-light leading-none cursor-pointer">&times;</button>
+                <button type="button" onClick={() => { setShowCreateModal(false); setEditCollectionId(null); }} className="text-zinc-500 hover:text-white transition text-2xl font-light leading-none cursor-pointer">&times;</button>
               </div>
 
               <div className="grid grid-cols-6 gap-4 mt-6">
@@ -602,7 +701,7 @@ export default function Collections() {
             <div className="p-6 pt-4 border-t border-[#333] flex justify-end gap-3">
               <button type="button" onClick={() => setShowCreateModal(false)} className="px-5 py-2 text-sm font-medium text-zinc-400 hover:text-white transition cursor-pointer">Cancel</button>
               <button type="submit" disabled={isSaving} className="px-6 py-2 bg-[#f26b3a] hover:bg-[#e65c2b] text-white font-bold rounded shadow-lg transition cursor-pointer disabled:opacity-50">
-                {isSaving ? 'Saving...' : 'Create Template'}
+                {isSaving ? 'Saving...' : (editCollectionId ? 'Update Blueprint' : 'Create Template')}
               </button>
             </div>
           </form>
@@ -702,6 +801,45 @@ export default function Collections() {
           </div>
         )
       })()}
+
+      {deleteId && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-[#1e1e1e] border border-red-900/30 rounded-xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-4 text-red-500 mb-4">
+              <div className="p-3 bg-red-500/10 rounded-full">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold">Confirm Deletion</h3>
+            </div>
+            <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+              Are you sure you want to delete this request template? This action <span className="text-red-400 font-semibold underline underline-offset-4">cannot be undone</span> and will remove the blueprint from your collection.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button 
+                disabled={isDeleting}
+                onClick={() => setDeleteId(null)} 
+                className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button 
+                disabled={isDeleting}
+                onClick={handleDelete}
+                className="px-6 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded-lg shadow-lg shadow-red-900/20 transition active:scale-95 flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+              >
+                {isDeleting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Deleting...
+                  </>
+                ) : 'Delete Template'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div className={`fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-xl border ${toast.type === 'error' ? 'bg-red-900/30 border-red-500/50 text-red-500' : 'bg-emerald-900/30 border-emerald-500/50 text-emerald-400'} font-medium z-50 animate-in slide-in-from-bottom-4`}>
