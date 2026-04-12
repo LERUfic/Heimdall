@@ -21,6 +21,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: 'You cannot reject your own request' }, { status: 403 })
   }
 
+  if (request.status !== 'PENDING') {
+    return NextResponse.json({ error: 'Only pending requests can be rejected' }, { status: 400 })
+  }
+
   await prisma.httpRequest.update({
     where: { id: p.id },
     data: {
