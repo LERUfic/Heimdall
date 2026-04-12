@@ -64,5 +64,20 @@ describe('Collections API', () => {
         })
       )
     })
+    it('should return 500 when creation fails', async () => {
+      ;(getSession as Mock).mockResolvedValue({ id: 'user-1', username: 'jdoe' })
+      prismaMock.requestCollection.create.mockRejectedValue(new Error('DB constraint failed'))
+
+      const req = new Request('http://localhost/api/collections', {
+        method: 'POST',
+        body: JSON.stringify({ name: 'Bad API', url: 'https://fail.com', method: 'GET' })
+      })
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(500)
+      expect(data.error).toBe('Failed to save collection')
+      expect(data.details).toBe('DB constraint failed')
+    })
   })
 })
