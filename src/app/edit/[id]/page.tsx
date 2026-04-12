@@ -1,7 +1,8 @@
 'use client'
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, use, Dispatch, SetStateAction } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { HttpRequestData } from '@/lib/types'
 
 type KeyValuePair = { key: string; value: string }
 
@@ -40,7 +41,7 @@ export default function EditRequest({ params }: { params: Promise<{ id: string }
           return
         }
         const data = await res.json()
-        const r = data.request
+        const r: HttpRequestData = data.request
 
         if (r.status !== 'PENDING') {
           showToast('Only pending requests can be edited')
@@ -60,7 +61,7 @@ export default function EditRequest({ params }: { params: Promise<{ id: string }
             setParamsArr([...pArr, { key: '', value: '' }])
             targetUrl = u.origin + u.pathname
           }
-        } catch(e) {}
+        } catch { }
         setUrl(targetUrl)
 
         if (r.headers) {
@@ -79,7 +80,7 @@ export default function EditRequest({ params }: { params: Promise<{ id: string }
                   const [user, ...pass] = decoded.split(':')
                   setBasicUser(user)
                   setBasicPass(pass.join(':'))
-                } catch(e) {}
+                } catch { }
               } else {
                 hArr.push({ key: k, value: val })
               }
@@ -89,7 +90,7 @@ export default function EditRequest({ params }: { params: Promise<{ id: string }
           })
           setHeadersArr(hArr.length > 0 ? [...hArr, { key: '', value: '' }] : [{ key: '', value: '' }])
         }
-      } catch (err) {
+      } catch {
         showToast('Error loading request')
       } finally {
         setIsLoading(false)
@@ -98,15 +99,15 @@ export default function EditRequest({ params }: { params: Promise<{ id: string }
     fetchData()
   }, [p.id, router])
 
-  const handleAddRow = (arr: KeyValuePair[], setArr: any) => {
+  const handleAddRow = (arr: KeyValuePair[], setArr: Dispatch<SetStateAction<KeyValuePair[]>>) => {
     setArr([...arr, { key: '', value: '' }])
   }
 
-  const handleRemoveRow = (index: number, arr: KeyValuePair[], setArr: any) => {
+  const handleRemoveRow = (index: number, arr: KeyValuePair[], setArr: Dispatch<SetStateAction<KeyValuePair[]>>) => {
     setArr(arr.filter((_, i) => i !== index))
   }
 
-  const handleChangeRow = (index: number, field: 'key' | 'value', val: string, arr: KeyValuePair[], setArr: any) => {
+  const handleChangeRow = (index: number, field: 'key' | 'value', val: string, arr: KeyValuePair[], setArr: Dispatch<SetStateAction<KeyValuePair[]>>) => {
     const newArr = [...arr]
     newArr[index][field] = val
     setArr(newArr)
@@ -127,7 +128,7 @@ export default function EditRequest({ params }: { params: Promise<{ id: string }
         const urlObj = new URL(url)
         validParams.forEach(p => urlObj.searchParams.set(p.key.trim(), p.value.trim()))
         finalUrl = urlObj.toString()
-      } catch (err) {
+      } catch {
         const qs = validParams.map(p => `${encodeURIComponent(p.key.trim())}=${encodeURIComponent(p.value.trim())}`).join('&')
         finalUrl = finalUrl.includes('?') ? `${finalUrl}&${qs}` : `${finalUrl}?${qs}`
       }
@@ -162,14 +163,14 @@ export default function EditRequest({ params }: { params: Promise<{ id: string }
         const err = await res.json()
         showToast(err.error || 'Failed to update request')
       }
-    } catch (err) {
+    } catch {
       showToast('Failed to update request')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const renderKVTable = (arr: KeyValuePair[], setArr: any) => (
+  const renderKVTable = (arr: KeyValuePair[], setArr: Dispatch<SetStateAction<KeyValuePair[]>>) => (
     <div className="border border-[#333] rounded overflow-hidden">
       <div className="grid grid-cols-12 bg-[#2a2a2a] border-b border-[#333] font-semibold text-xs text-zinc-500 tracking-wider">
         <div className="col-span-5 px-3 py-2 border-r border-[#333]">KEY</div>

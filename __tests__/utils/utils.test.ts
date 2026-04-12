@@ -36,7 +36,7 @@ describe('UI Utilities', () => {
     
     it('handles lowercase/missing methods', () => {
       expect(getMethodColor('get')).toContain('#4caf50')
-      expect(getMethodColor(undefined as any)).toContain('zinc-500')
+      expect(getMethodColor(undefined as unknown as string)).toContain('zinc-500')
     })
   })
 

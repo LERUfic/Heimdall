@@ -2,12 +2,11 @@
 import React, { useState } from 'react'
 
 interface TemplateModalProps {
-  request: any
   onClose: () => void
   onSave: (name: string, isGlobal: boolean) => Promise<void>
 }
 
-export default function TemplateModal({ request, onClose, onSave }: TemplateModalProps) {
+export default function TemplateModal({ onClose, onSave }: TemplateModalProps) {
   const [name, setName] = useState('')
   const [isGlobal, setIsGlobal] = useState(false)
   const [loading, setLoading] = useState(false)

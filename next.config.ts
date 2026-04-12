@@ -16,7 +16,6 @@ const allowedExternalOrigins = process.env.ALLOWED_ORIGINS
 const nextConfig: NextConfig = {
   /* config options here */
 
-  // @ts-ignore -- Custom/localized typing 
   allowedDevOrigins: [...validIps, ...allowedExternalOrigins],
 
   // Note: If your login is failing due to Next.js 14+ Server Actions, 

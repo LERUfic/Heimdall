@@ -16,8 +16,10 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
     },
-    deps: {
-      inline: [/^(?!.*node_modules).*$/],
+    server: {
+      deps: {
+        inline: [/^(?!.*node_modules).*$/],
+      },
     },
   },
 })

@@ -3,14 +3,15 @@ import { describe, it, expect, vi } from 'vitest'
 import RequestRow from '@/components/RequestRow'
 
 describe('RequestRow Component', () => {
-  const mockUser = { id: 'u1', role: 'APPROVER' }
+  const mockUser = { id: 'u1', username: 'admin', role: 'APPROVER' }
   const mockRequest = { 
     id: 'req123-abc', 
     method: 'GET', 
     url: 'http://example.com', 
     status: 'PENDING', 
     requesterId: 'u2',
-    requester: { username: 'user2' }
+    requester: { username: 'user2' },
+    createdAt: new Date().toISOString()
   }
 
   const mockHandlers = {

@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import TemplateModal from '@/components/TemplateModal'
 
 describe('TemplateModal Component', () => {
-  const mockRequest = { id: 'req-1', method: 'GET', url: 'http://e.com' }
   const mockOnClose = vi.fn()
   const mockOnSave = vi.fn().mockResolvedValue(undefined)
 
@@ -12,12 +11,12 @@ describe('TemplateModal Component', () => {
   })
 
   it('renders correctly', () => {
-    render(<TemplateModal request={mockRequest} onClose={mockOnClose} onSave={mockOnSave} />)
+    render(<TemplateModal onClose={mockOnClose} onSave={mockOnSave} />)
     expect(screen.getByText(/Save as Blueprint/i)).toBeDefined()
   })
 
   it('validates input before saving', async () => {
-    render(<TemplateModal request={mockRequest} onClose={mockOnClose} onSave={mockOnSave} />)
+    render(<TemplateModal onClose={mockOnClose} onSave={mockOnSave} />)
     const saveBtn = screen.getByText('Confirm Save')
     
     expect(saveBtn.hasAttribute('disabled')).toBe(true)
@@ -33,7 +32,7 @@ describe('TemplateModal Component', () => {
   })
 
   it('handles global toggle', async () => {
-    render(<TemplateModal request={mockRequest} onClose={mockOnClose} onSave={mockOnSave} />)
+    render(<TemplateModal onClose={mockOnClose} onSave={mockOnSave} />)
     
     fireEvent.change(screen.getByPlaceholderText(/Production Cache Purge/i), { target: { value: 'Global Template' } })
     fireEvent.click(screen.getByRole('checkbox'))
@@ -46,7 +45,7 @@ describe('TemplateModal Component', () => {
   })
 
   it('closes on cancel', () => {
-    render(<TemplateModal request={mockRequest} onClose={mockOnClose} onSave={mockOnSave} />)
+    render(<TemplateModal onClose={mockOnClose} onSave={mockOnSave} />)
     fireEvent.click(screen.getByText('Cancel'))
     expect(mockOnClose).toHaveBeenCalled()
   })

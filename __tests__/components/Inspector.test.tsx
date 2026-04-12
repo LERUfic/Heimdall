@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import Inspector from '@/components/Inspector'
 
@@ -8,6 +8,7 @@ describe('Inspector Component', () => {
     method: 'POST',
     url: 'https://api.example.com?q=test',
     status: 'EXECUTED',
+    requesterId: 'user-1',
     createdAt: new Date().toISOString(),
     headers: JSON.stringify({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ key: 'val' }),

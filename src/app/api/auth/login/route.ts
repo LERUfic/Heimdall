@@ -6,7 +6,7 @@ import { logger } from '@/lib/logger'
 
 export async function POST(req: Request) {
   const { username, password } = await req.json()
-  let isMock = String(process.env.MOCK_LDAP).replace(/["']/g, '').trim().toLowerCase() === 'true' || !process.env.LDAP_URL
+  const isMock = String(process.env.MOCK_LDAP).replace(/["']/g, '').trim().toLowerCase() === 'true' || !process.env.LDAP_URL
 
   let success = false;
   if (isMock) {
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     }
   } else {
     try {
-      const options: any = {
+      const options: Record<string, unknown> = {
         ldapOpts: { url: process.env.LDAP_URL || '' },
         userPassword: password
       }
@@ -40,7 +40,8 @@ export async function POST(req: Request) {
         options.usernameAttribute = process.env.LDAP_USERNAME_ATTRIBUTE || 'cn'
       }
 
-      const user = await authenticate(options)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const user = await authenticate(options as any)
       if (user) success = true
     } catch (err) {
       logger.error({ event: 'LDAP_AUTH_ERROR', username, error: err })

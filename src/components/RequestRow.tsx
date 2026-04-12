@@ -2,15 +2,16 @@
 import React from 'react'
 import Link from 'next/link'
 import { getStatusColor, getMethodColor, getHttpStatusColor } from '@/lib/utils'
+import { HttpRequestData, UserSession } from '@/lib/types'
 
 interface RequestRowProps {
-  request: any
-  user: any
+  request: HttpRequestData
+  user: UserSession
   loadingAction: string | null
   onAction: (e: React.MouseEvent, id: string, action: 'approve' | 'reject' | 'execute') => void
-  onClone: (e: React.MouseEvent, r: any) => void
-  onSave: (e: React.MouseEvent, r: any) => void
-  onSelect: (r: any) => void
+  onClone: (e: React.MouseEvent, r: HttpRequestData) => void
+  onSave: (e: React.MouseEvent, r: HttpRequestData) => void
+  onSelect: (r: HttpRequestData) => void
 }
 
 export default function RequestRow({ request: r, user, loadingAction, onAction, onClone, onSave, onSelect }: RequestRowProps) {
@@ -31,10 +32,13 @@ export default function RequestRow({ request: r, user, loadingAction, onAction, 
       <td className="p-4">
         {(() => {
           if (r.status !== 'EXECUTED' || !r.response) return <span className="text-zinc-600 font-mono">-</span>;
+          let code: number | null = null;
           try {
-            const code = parseInt(JSON.parse(r.response).status);
-            return <span className={`font-mono font-bold ${getHttpStatusColor(code)}`}>{code || 'Err'}</span>;
-          } catch { return <span className="text-zinc-500 font-mono">Err</span>; }
+            code = parseInt(JSON.parse(r.response).status);
+          } catch { 
+            return <span className="text-zinc-500 font-mono">Err</span>;
+          }
+          return <span className={`font-mono font-bold ${getHttpStatusColor(code || 0)}`}>{code || 'Err'}</span>;
         })()}
       </td>
       {user.role === 'APPROVER' && <td className="p-4 text-sm text-zinc-400 font-medium">{r.requester?.username || 'Unknown'}</td>}

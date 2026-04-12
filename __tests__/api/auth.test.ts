@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import { POST } from '@/app/api/auth/login/route'
 import { prismaMock } from '../__mocks__/prisma'
 import { setSessionCookie } from '@/lib/auth'
@@ -31,6 +31,7 @@ describe('Auth API (POST /api/auth/login)', () => {
       role: 'REQUESTER',
       createdAt: new Date(),
       updatedAt: new Date(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)
 
     const response = await POST(req)
@@ -54,6 +55,7 @@ describe('Auth API (POST /api/auth/login)', () => {
       role: 'APPROVER',
       createdAt: new Date(),
       updatedAt: new Date(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)
 
     const response = await POST(req)
@@ -84,13 +86,14 @@ describe('Auth API (POST /api/auth/login)', () => {
     process.env.MOCK_LDAP = 'false'
     process.env.LDAP_URL = 'ldap://test'
     const { authenticate } = await import('ldap-authentication')
-    ;(authenticate as any).mockResolvedValue({ sAMAccountName: 'jdoe' })
+    ;(authenticate as Mock).mockResolvedValue({ sAMAccountName: 'jdoe' })
 
     const req = new Request('http://localhost/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ username: 'jdoe', password: 'secret-password' }),
     })
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prismaMock.user.upsert.mockResolvedValue({ id: '1', username: 'jdoe', role: 'REQUESTER' } as any)
 
     const response = await POST(req)
@@ -105,7 +108,7 @@ describe('Auth API (POST /api/auth/login)', () => {
     process.env.MOCK_LDAP = 'false'
     process.env.LDAP_URL = 'ldap://test'
     const { authenticate } = await import('ldap-authentication')
-    ;(authenticate as any).mockRejectedValue(new Error('LDAP Connection Failed'))
+    ;(authenticate as Mock).mockRejectedValue(new Error('LDAP Connection Failed'))
 
     const req = new Request('http://localhost/api/auth/login', {
       method: 'POST',
@@ -127,17 +130,18 @@ describe('Auth API (POST /api/auth/login)', () => {
     process.env.LDAP_SEARCH_FILTER = '(uid={{username}})'
     
     const { authenticate } = await import('ldap-authentication')
-    ;(authenticate as any).mockResolvedValue({ sAMAccountName: 'jdoe' })
+    ;(authenticate as Mock).mockResolvedValue({ sAMAccountName: 'jdoe' })
 
     const req = new Request('http://localhost/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ username: 'jdoe', password: 'secret-password' }),
     })
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prismaMock.user.upsert.mockResolvedValue({ id: '1', username: 'jdoe', role: 'REQUESTER' } as any)
 
     const response = await POST(req)
-    const data = await response.json()
+    await response.json()
 
     expect(response.status).toBe(200)
     expect(authenticate).toHaveBeenCalledWith(expect.objectContaining({
@@ -152,6 +156,7 @@ describe('Auth API (POST /api/auth/login)', () => {
       method: 'POST',
       body: JSON.stringify({ username: 'admin', password: 'password' }),
     })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prismaMock.user.upsert.mockResolvedValue({ id: '1', username: 'admin', role: 'APPROVER' } as any)
     const response = await POST(req)
     const data = await response.json()
@@ -165,12 +170,13 @@ describe('Auth API (POST /api/auth/login)', () => {
     delete process.env.LDAP_SEARCH_FILTER
     
     const { authenticate } = await import('ldap-authentication')
-    ;(authenticate as any).mockResolvedValue({ cn: 'jdoe' })
+    ;(authenticate as Mock).mockResolvedValue({ cn: 'jdoe' })
 
     const req = new Request('http://localhost/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ username: 'jdoe', password: 'p' }),
     })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prismaMock.user.upsert.mockResolvedValue({ id: '1', username: 'jdoe', role: 'REQUESTER' } as any)
     await POST(req)
     

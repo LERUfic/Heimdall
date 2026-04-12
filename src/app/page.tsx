@@ -1,23 +1,24 @@
 'use client'
 import useSWR from 'swr'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { getStatusColor, getMethodColor, getHttpStatusColor } from '@/lib/utils'
 import Inspector from '@/components/Inspector'
 import TemplateModal from '@/components/TemplateModal'
 import RequestRow from '@/components/RequestRow'
+import { HttpRequestData, UserSession } from '@/lib/types'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 export default function Dashboard() {
   const router = useRouter()
-  const { data: auth, error: authError } = useSWR('/api/auth/me', fetcher)
-  const [selectedRequest, setSelectedRequest] = useState<any | null>(null)
+  const { data: auth, error: authError } = useSWR<{ user: UserSession } | null>('/api/auth/me', fetcher)
+  const [selectedRequest, setSelectedRequest] = useState<HttpRequestData | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [loadingAction, setLoadingAction] = useState<string | null>(null)
-  const [showSaveModal, setShowSaveModal] = useState<any | null>(null)
+  const [showSaveModal, setShowSaveModal] = useState<HttpRequestData | null>(null)
   const [toast, setToast] = useState<{ msg: string, type: 'error' | 'success' } | null>(null)
 
   const showToast = (msg: string, type: 'error' | 'success' = 'error') => {
@@ -75,13 +76,14 @@ export default function Dashboard() {
     router.push('/login')
   }
 
-  const handleClone = (e: React.MouseEvent, r: any) => {
+  const handleClone = (e: React.MouseEvent, r: HttpRequestData) => {
     e.stopPropagation()
     sessionStorage.setItem('clone_request', JSON.stringify(r))
     router.push('/create')
   }
 
   const handleSaveCollection = async (name: string, isGlobal: boolean) => {
+    if (!showSaveModal) return
     const res = await fetch('/api/collections', {
       method: 'POST',
       body: JSON.stringify({
@@ -111,7 +113,7 @@ export default function Dashboard() {
             <Link href="/" className="flex items-center gap-4 hover:opacity-80 transition cursor-pointer group">
               <div className="relative">
                 <div className="absolute inset-0 bg-[#f26b3a] blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                <img src="/logo.svg" alt="Heimdall Logo" className="w-12 h-12 relative z-10" />
+                <Image src="/logo.svg" alt="Heimdall Logo" width={48} height={48} className="relative z-10" />
               </div>
               <div className="flex flex-col">
                 <h1 className="text-3xl font-black tracking-tighter text-white leading-none italic uppercase">HEIMDALL</h1>
@@ -177,7 +179,7 @@ export default function Dashboard() {
               {reqs?.requests?.length === 0 && (
                 <tr><td colSpan={7} className="p-12 text-center text-zinc-600 text-sm font-bold uppercase italic tracking-widest bg-zinc-900/20">No audit requests pending review.</td></tr>
               )}
-              {reqs?.requests?.map((r: any) => (
+              {reqs?.requests?.map((r: HttpRequestData) => (
                 <RequestRow
                   key={r.id}
                   request={r}
@@ -195,7 +197,7 @@ export default function Dashboard() {
       </div>
 
       {selectedRequest && <Inspector request={selectedRequest} onClose={() => setSelectedRequest(null)} onSaveTemplate={setShowSaveModal} />}
-      {showSaveModal && <TemplateModal request={showSaveModal} onClose={() => setShowSaveModal(null)} onSave={handleSaveCollection} />}
+      {showSaveModal && <TemplateModal onClose={() => setShowSaveModal(null)} onSave={handleSaveCollection} />}
 
       {toast && (
         <div className={`fixed bottom-8 right-8 px-8 py-5 rounded-[1.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] border-2 ${toast.type === 'error' ? 'bg-[#451010] border-red-500 text-red-100' : 'bg-[#104520] border-green-500 text-green-100'} font-black text-[11px] uppercase tracking-[0.2em] z-[200] animate-in slide-in-from-right-10 flex items-center gap-3 shadow-xl shadow-black/50`}>

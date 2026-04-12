@@ -1,11 +1,12 @@
 'use client'
 import React, { useState } from 'react'
 import { formatDate, getMethodColor } from '@/lib/utils'
+import { HttpRequestData } from '@/lib/types'
 
 interface InspectorProps {
-  request: any
+  request: HttpRequestData
   onClose: () => void
-  onSaveTemplate: (req: any) => void
+  onSaveTemplate: (req: HttpRequestData) => void
 }
 
 export default function Inspector({ request: r, onClose, onSaveTemplate }: InspectorProps) {
@@ -48,14 +49,14 @@ export default function Inspector({ request: r, onClose, onSaveTemplate }: Inspe
     )
   }
 
-  const renderResponseBlock = (respStr: string) => {
+  const renderResponseBlock = (respStr: string | null | undefined) => {
     if (!respStr) return <div className="p-4 text-zinc-500 italic text-sm">No body provided.</div>
     let display = respStr
     try {
       if (isPretty) {
         const outer = JSON.parse(respStr)
         if (outer.body && typeof outer.body === 'string') {
-          try { outer.body = JSON.parse(outer.body) } catch (e) { }
+          try { outer.body = JSON.parse(outer.body) } catch { }
         }
         display = JSON.stringify(outer, null, 2)
       }
@@ -84,7 +85,7 @@ export default function Inspector({ request: r, onClose, onSaveTemplate }: Inspe
     >
       <div 
         className={`h-full w-full max-w-2xl bg-[#1c1c1c] shadow-[0_0_50px_rgba(0,0,0,0.5)] border-l border-[#333] flex flex-col transform ${closing ? 'animate-slide-out-right' : 'animate-slide-in-right'}`} 
-        onClick={e => e.stopPropagation()}
+        onClick={_e => _e.stopPropagation()}
       >
         {/* Header */}
         <div className="p-6 border-b border-[#333] bg-gradient-to-b from-[#2a2a2a]/50 to-transparent">

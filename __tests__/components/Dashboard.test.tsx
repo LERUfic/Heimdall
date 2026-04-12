@@ -1,5 +1,5 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest'
 import Dashboard from '@/app/page'
 import { SWRConfig } from 'swr'
 
@@ -22,7 +22,7 @@ describe('Dashboard Component - Final Stability', () => {
     vi.clearAllMocks()
     vi.useRealTimers()
     global.fetch = vi.fn()
-    global.sessionStorage = { setItem: vi.fn(), getItem: vi.fn(), removeItem: vi.fn(), clear: vi.fn(), length: 0, key: vi.fn() } as any
+    global.sessionStorage = { setItem: vi.fn(), getItem: vi.fn(), removeItem: vi.fn(), clear: vi.fn(), length: 0, key: vi.fn() } as unknown as Storage
   })
 
   afterEach(() => { vi.useRealTimers() })
@@ -35,8 +35,8 @@ describe('Dashboard Component - Final Stability', () => {
     )
   }
 
-  const mockSuccess = (user: any, reqs: any[]) => {
-    ;(global.fetch as any).mockImplementation((url: string) => {
+  const mockSuccess = (user: unknown, reqs: unknown[]) => {
+    ;(global.fetch as unknown as { mockImplementation: (fn: (url: string) => Promise<unknown>) => void }).mockImplementation((url: string) => {
       if (url.includes('/api/auth/me')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ user }) })
       if (url.includes('/api/requests')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ requests: reqs }) })
       return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
@@ -56,7 +56,7 @@ describe('Dashboard Component - Final Stability', () => {
     await waitFor(() => expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/approve'), expect.any(Object)))
 
     // 2. Failed Action
-    ;(global.fetch as any).mockImplementationOnce(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Failed' }) }))
+    ;(global.fetch as Mock).mockImplementationOnce(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Failed' }) }))
     fireEvent.click(screen.getByRole('button', { name: /Reject/i }))
     await waitFor(() => expect(screen.getByText(/Failed: Failed/i)).toBeDefined())
 

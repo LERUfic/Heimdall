@@ -1,8 +1,10 @@
 'use client'
 import useSWR from 'swr'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { UserSession, RequestCollectionData } from '@/lib/types'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
@@ -10,7 +12,7 @@ export default function Collections() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [toast, setToast] = useState<{ msg: string, type: 'error' | 'success' } | null>(null)
-  const [inspectCollection, setInspectCollection] = useState<any | null>(null)
+  const [inspectCollection, setInspectCollection] = useState<RequestCollectionData | null>(null)
   const [inspectTab, setInspectTab] = useState('Params')
 
   // Create Mode States
@@ -89,8 +91,8 @@ export default function Collections() {
     setToast({ msg, type })
     setTimeout(() => setToast(null), 3000)
   }
-  const { data: auth, error: authError } = useSWR('/api/auth/me', fetcher)
-  const { data: cols, mutate } = useSWR(auth?.user ? '/api/collections' : null, fetcher)
+  const { data: auth, error: authError } = useSWR<{ user: UserSession } | null>('/api/auth/me', fetcher)
+  const { data: cols, mutate } = useSWR<{ collections: RequestCollectionData[] } | null>(auth?.user ? '/api/collections' : null, fetcher)
 
   useEffect(() => {
     if (authError || (auth && !auth.user)) {
@@ -106,7 +108,7 @@ export default function Collections() {
     router.push('/login')
   }
 
-  const handleDraft = (c: any) => {
+  const handleDraft = (c: RequestCollectionData) => {
     sessionStorage.setItem('clone_request', JSON.stringify({
       method: c.method,
       url: c.url,
@@ -129,14 +131,14 @@ export default function Collections() {
         const err = await res.json()
         showToast('Failed: ' + err.error, 'error')
       }
-    } catch (err) {
+    } catch {
       showToast('Network error')
     } finally {
       setIsDeleting(false)
     }
   }
 
-  const handleEditStart = (e: React.MouseEvent, c: any) => {
+  const handleEditStart = (e: React.MouseEvent, c: RequestCollectionData) => {
     e.stopPropagation()
     setEditCollectionId(c.id)
     setNewName(c.name)
@@ -152,7 +154,7 @@ export default function Collections() {
       u.searchParams.forEach((v, k) => pArr.push({ key: k, value: v }))
       setNewParamsArr(pArr.length > 0 ? [...pArr, { key: '', value: '' }] : [{ key: '', value: '' }])
       targetUrl = u.origin + u.pathname
-    } catch(e) {
+    } catch {
       setNewParamsArr([{ key: '', value: '' }])
     }
     setNewUrl(targetUrl)
@@ -178,7 +180,7 @@ export default function Collections() {
                 setNewBasicUser(user)
                 setNewBasicPass(pass.join(':'))
                 authFound = true
-              } catch(e) {}
+              } catch { }
             } else {
               hArr.push({ key: k, value: val })
             }
@@ -188,7 +190,7 @@ export default function Collections() {
         })
         if (!authFound) setNewAuthType('None')
         setNewHeadersArr(hArr.length > 0 ? [...hArr, { key: '', value: '' }] : [{ key: '', value: '' }])
-      } catch(e) {
+      } catch {
         setNewHeadersArr([{ key: '', value: '' }])
       }
     } else {
@@ -215,7 +217,7 @@ export default function Collections() {
         const urlObj = new URL(newUrl)
         validParams.forEach(p => urlObj.searchParams.append(p.key.trim(), p.value.trim()))
         finalUrl = urlObj.toString()
-      } catch (err) {
+      } catch {
         const qs = validParams.map(p => `${encodeURIComponent(p.key.trim())}=${encodeURIComponent(p.value.trim())}`).join('&')
         finalUrl = finalUrl.includes('?') ? `${finalUrl}&${qs}` : `${finalUrl}?${qs}`
       }
@@ -269,14 +271,14 @@ export default function Collections() {
         const err = await res.json()
         showToast('Failed to create: ' + err.error, 'error')
       }
-    } catch (err) {
+    } catch {
       showToast('Network error occurred', 'error')
     } finally {
       setIsSaving(false)
     }
   }
 
-  const handleToggleGlobal = async (c: any) => {
+  const handleToggleGlobal = async (c: RequestCollectionData) => {
     const res = await fetch(`/api/collections/${c.id}`, {
       method: 'PATCH',
       body: JSON.stringify({ isGlobal: !c.isGlobal })
@@ -297,7 +299,7 @@ export default function Collections() {
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-10">
             <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
-              <img src="/logo.svg" alt="Heimdall Logo" className="w-10 h-10" />
+              <Image src="/logo.svg" alt="Heimdall Logo" width={40} height={40} />
               <div className="flex flex-col">
                 <h1 className="text-2xl font-black tracking-tighter text-white leading-none">HEIMDALL</h1>
                 <span className="text-[10px] font-bold text-[#00C2FF] tracking-[.2em] leading-none mt-1 uppercase">Project</span>
@@ -373,7 +375,7 @@ export default function Collections() {
                   </td>
                 </tr>
               )}
-              {cols.collections.filter((c: any) => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.url.toLowerCase().includes(searchQuery.toLowerCase())).map((c: any) => (
+              {cols.collections.filter((c: RequestCollectionData) => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.url.toLowerCase().includes(searchQuery.toLowerCase())).map((c: RequestCollectionData) => (
                 <tr
                   key={c.id}
                   onClick={() => { setInspectCollection(c); setInspectTab('Params') }}
@@ -709,17 +711,17 @@ export default function Collections() {
       )}
 
       {inspectCollection && (() => {
-        let parsedParams: Record<string, string> = {}
+        const parsedParams: Record<string, string> = {}
         let baseInspectUrl = inspectCollection.url
         try {
           const u = new URL(inspectCollection.url)
           u.searchParams.forEach((v, k) => { parsedParams[k] = v })
           baseInspectUrl = u.origin + u.pathname
-        } catch (e) { }
+        } catch { }
 
         let parsedHeaders: Record<string, string> = {}
         if (inspectCollection.headers) {
-          try { parsedHeaders = JSON.parse(inspectCollection.headers) } catch (e) { }
+          try { parsedHeaders = JSON.parse(inspectCollection.headers) } catch { }
         }
 
         return (
@@ -779,7 +781,7 @@ export default function Collections() {
                       <div className="p-4 font-mono whitespace-pre-wrap text-sm text-zinc-300">
                         {(() => {
                           try { return JSON.stringify(JSON.parse(inspectCollection.body), null, 2) }
-                          catch (e) { return inspectCollection.body }
+                          catch { return inspectCollection.body }
                         })()}
                       </div>
                     </div>

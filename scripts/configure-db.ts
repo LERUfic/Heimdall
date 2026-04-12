@@ -9,7 +9,7 @@ export interface ConfigDeps {
   existsSync: (path: string) => boolean;
   readFileSync: (path: string, encoding: 'utf8') => string;
   writeFileSync: (path: string, content: string) => void;
-  execSync: (command: string, options: any) => Buffer;
+  execSync: (command: string, options: Record<string, unknown>) => Buffer;
   log: (message: string) => void;
   error: (message: string) => void;
   exit: (code: number) => void;
@@ -93,8 +93,9 @@ export async function configure(prismaProvider: string, deps: ConfigDeps = defau
       deps.log('2. Run: npx prisma db push');
     }
     return true;
-  } catch (err: any) {
-    deps.error(`\x1b[31mError during configuration: ${err.message}\x1b[0m`);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    deps.error(`\x1b[31mError during configuration: ${message}\x1b[0m`);
     throw err;
   }
 }

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import { GET, POST } from '@/app/api/requests/route'
 import { prismaMock } from '../__mocks__/prisma'
 import { getSession } from '@/lib/auth'
@@ -14,14 +14,14 @@ describe('Requests API (Basic)', () => {
 
   describe('GET /api/requests', () => {
     it('should return 401 if not authenticated', async () => {
-      ;(getSession as any).mockResolvedValue(null)
+      ;(getSession as Mock).mockResolvedValue(null)
       const req = new Request('http://localhost/api/requests')
       const response = await GET(req)
       expect(response.status).toBe(401)
     })
 
     it('should list only user requests for a REQUESTER', async () => {
-      ;(getSession as any).mockResolvedValue({ id: 'user-1', role: 'REQUESTER' })
+      ;(getSession as Mock).mockResolvedValue({ id: 'user-1', role: 'REQUESTER' })
       prismaMock.httpRequest.findMany.mockResolvedValue([])
 
       const req = new Request('http://localhost/api/requests')
@@ -35,7 +35,7 @@ describe('Requests API (Basic)', () => {
     })
 
     it('should list all requests for an APPROVER', async () => {
-      ;(getSession as any).mockResolvedValue({ id: 'boss-1', role: 'APPROVER' })
+      ;(getSession as Mock).mockResolvedValue({ id: 'boss-1', role: 'APPROVER' })
       prismaMock.httpRequest.findMany.mockResolvedValue([])
 
       const req = new Request('http://localhost/api/requests')
@@ -49,7 +49,7 @@ describe('Requests API (Basic)', () => {
     })
 
     it('should apply search filters when "q" is provided', async () => {
-      ;(getSession as any).mockResolvedValue({ id: 'user-1', role: 'APPROVER' })
+      ;(getSession as Mock).mockResolvedValue({ id: 'user-1', role: 'APPROVER' })
       prismaMock.httpRequest.findMany.mockResolvedValue([])
 
       const req = new Request('http://localhost/api/requests?q=target-url')
@@ -69,8 +69,9 @@ describe('Requests API (Basic)', () => {
 
   describe('POST /api/requests', () => {
     it('should create a new pending request', async () => {
-      ;(getSession as any).mockResolvedValue({ id: 'user-1', username: 'jdoe' })
+      ;(getSession as Mock).mockResolvedValue({ id: 'user-1', username: 'jdoe' })
       const mockRequest = { id: 'new-id', status: 'PENDING' }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       prismaMock.httpRequest.create.mockResolvedValue(mockRequest as any)
 
       const req = new Request('http://localhost/api/requests', {

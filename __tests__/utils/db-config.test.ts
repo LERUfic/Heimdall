@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import { transformSchema, configure, run, ConfigDeps } from '../../scripts/configure-db'
 
 describe('Database Configurator (Injection Pattern)', () => {
@@ -58,7 +58,7 @@ model HttpRequest {
     })
 
     it('should handle missing schema file', async () => {
-      ;(mockDeps.existsSync as any).mockReturnValue(false)
+      ;(mockDeps.existsSync as Mock).mockReturnValue(false)
       await expect(configure('sqlite', mockDeps)).rejects.toThrow('schema.prisma not found')
       expect(mockDeps.error).toHaveBeenCalledWith(expect.stringContaining('Error during configuration'))
     })
@@ -77,8 +77,8 @@ model HttpRequest {
     })
 
     it('should handle missing arguments', () => {
-        expect(() => run([], mockDeps)).toThrow('exit')
-        expect(mockDeps.exit).toHaveBeenCalledWith(1)
+      expect(() => run([], mockDeps)).toThrow('exit')
+      expect(mockDeps.exit).toHaveBeenCalledWith(1)
     })
   })
 })
