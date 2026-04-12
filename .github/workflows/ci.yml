@@ -2,34 +2,107 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+# Write permission required for dorny/test-reporter to post check runs
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
 
 jobs:
-  test:
+  # ─── Job 1: Pre-Commit ───────────────────────────────────────────────────────
+  pre-commit:
+    name: "🔍 Pre-Commit Checks"
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
-        cache: 'npm'
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # gitleaks needs full history for secret scanning
 
-    - name: Install dependencies
-      run: npm ci
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
 
-    - name: Run Lint
-      run: npm run lint
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
 
-    - name: Run Tests
-      run: npm run test:coverage
+      - name: Install Node dependencies
+        run: npm ci
 
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        fail_ci_if_error: false
+      # On PRs: only scan files changed in this branch (fast, mirrors local behavior)
+      # On push to main: scan all files (full integrity gate)
+      - name: Run pre-commit hooks (changed files only — PR)
+        if: github.event_name == 'pull_request'
+        uses: pre-commit/action@v3.0.1
+        env:
+          SKIP: vitest-coverage
+        with:
+          extra_args: --from-ref origin/${{ github.base_ref }} --to-ref HEAD
+
+      - name: Run pre-commit hooks (all files — push to main)
+        if: github.event_name == 'push'
+        uses: pre-commit/action@v3.0.1
+        env:
+          SKIP: vitest-coverage
+        with:
+          extra_args: --all-files
+
+  # ─── Job 2: Tests & Coverage ─────────────────────────────────────────────────
+  test:
+    name: "🧪 Tests & Coverage"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage & JUnit report
+        run: |
+          npx vitest run --coverage \
+            --reporter=verbose \
+            --reporter=junit \
+            --outputFile.junit=./test-results/junit.xml
+
+      - name: Publish test report
+        uses: dorny/test-reporter@v1
+        if: always() # Run even if tests fail so the report is always visible
+        with:
+          name: "Vitest Test Results"
+          path: test-results/junit.xml
+          reporter: java-junit
+          fail-on-error: true
+
+      - name: Post coverage summary to job
+        if: always()
+        run: |
+          echo "## 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat coverage/coverage-summary.json 2>/dev/null \
+            | npx --yes json -e '
+              var s = this.total;
+              console.log("Statements : " + s.statements.pct + "%");
+              console.log("Branches   : " + s.branches.pct + "%");
+              console.log("Functions  : " + s.functions.pct + "%");
+              console.log("Lines      : " + s.lines.pct + "%");
+            ' || echo "Coverage summary not available"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
