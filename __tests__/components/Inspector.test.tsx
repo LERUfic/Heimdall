@@ -12,7 +12,10 @@ describe('Inspector Component', () => {
     createdAt: new Date().toISOString(),
     headers: JSON.stringify({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ key: 'val' }),
-    response: JSON.stringify({ status: 200, body: '{"ok":true}' })
+    response: JSON.stringify({ status: 200, body: '{"ok":true}' }),
+    requester: { username: 'john_doe' },
+    approver: { username: 'admin_user' },
+    approvedAt: new Date().toISOString()
   }
 
   const mockOnClose = vi.fn()
@@ -30,7 +33,14 @@ describe('Inspector Component', () => {
     expect(screen.getByText(/Inspection Detail/i)).toBeDefined()
     expect(screen.getByText('POST')).toBeDefined()
     
+    expect(screen.getByText(/john_doe/)).toBeDefined()
+    expect(screen.getByText(/Operator/i)).toBeDefined()
+    expect(screen.getByText(/Verifier/i)).toBeDefined()
+    
     // Params Tab (Default)
+    expect(screen.getByText('Params')).toBeDefined()
+    // There are two "1" badges (Params and Headers)
+    expect(screen.getAllByText('1')).toHaveLength(2)
     expect(screen.getByText('test')).toBeDefined()
     
     // Headers Tab
@@ -39,6 +49,7 @@ describe('Inspector Component', () => {
     
     // Response Tab
     fireEvent.click(screen.getByText('Response'))
+    expect(screen.getByText('2')).toBeDefined() // Count for status & body
     expect(screen.getByText(/200/)).toBeDefined()
   })
 

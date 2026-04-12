@@ -49,7 +49,7 @@ export default function RequestRow({ request: r, user, loadingAction, onAction, 
               <button 
                 disabled={!!loadingAction} 
                 onClick={(e) => onAction(e, r.id, 'approve')} 
-                className="px-3 py-1 bg-green-600/10 hover:bg-green-600 text-green-500 hover:text-white text-[10px] font-bold rounded transition uppercase tracking-widest border border-green-600/30 flex items-center gap-1.5"
+                className="px-3 py-1 bg-green-600/10 hover:bg-green-600 text-green-500 hover:text-white text-[10px] font-bold rounded transition uppercase tracking-widest border border-green-600/30 flex items-center gap-1.5 cursor-pointer"
                 title="Approve Request"
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
@@ -58,7 +58,7 @@ export default function RequestRow({ request: r, user, loadingAction, onAction, 
               <button 
                 disabled={!!loadingAction} 
                 onClick={(e) => onAction(e, r.id, 'reject')} 
-                className="px-3 py-1 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white text-[10px] font-bold rounded transition uppercase tracking-widest border border-red-600/30 flex items-center gap-1.5"
+                className="px-3 py-1 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white text-[10px] font-bold rounded transition uppercase tracking-widest border border-red-600/30 flex items-center gap-1.5 cursor-pointer"
                 title="Reject Request"
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -70,7 +70,7 @@ export default function RequestRow({ request: r, user, loadingAction, onAction, 
             <button 
                 disabled={!!loadingAction} 
                 onClick={(e) => onAction(e, r.id, 'execute')} 
-                className="px-4 py-1 bg-[#f26b3a] hover:bg-[#e65c2b] text-white text-[10px] font-bold rounded transition uppercase tracking-widest shadow-lg flex items-center gap-2"
+                className="px-4 py-1 bg-[#f26b3a] hover:bg-[#e65c2b] text-white text-[10px] font-bold rounded transition uppercase tracking-widest shadow-lg flex items-center gap-2 cursor-pointer"
                 title="Execute Pipeline"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -80,7 +80,7 @@ export default function RequestRow({ request: r, user, loadingAction, onAction, 
           <div className="flex gap-1 ml-auto opacity-60 hover:opacity-100 transition items-center">
             {r.status === 'PENDING' && (r.requesterId === user.id || user.role === 'APPROVER') && (
               <div className="relative group/tip">
-                <Link href={`/edit/${r.id}`} aria-label="Edit" className="p-1.5 hover:bg-zinc-800 text-zinc-500 hover:text-amber-400 rounded-lg transition flex items-center justify-center">
+                <Link href={`/edit/${r.id}`} aria-label="Edit" className="p-1.5 hover:bg-zinc-800 text-zinc-500 hover:text-amber-400 rounded-lg transition flex items-center justify-center cursor-pointer">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                 </Link>
                 <div className="absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 bg-zinc-800 text-white text-[10px] font-bold uppercase rounded opacity-0 group-hover/tip:opacity-100 transition whitespace-nowrap pointer-events-none ring-1 ring-zinc-700 shadow-2xl z-[60]">Edit Detail</div>

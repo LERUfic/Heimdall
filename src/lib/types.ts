@@ -22,6 +22,9 @@ export interface HttpRequestData {
   requester?: {
     username: string;
   };
+  approver?: {
+    username: string;
+  };
 }
 
 export interface RequestCollectionData {

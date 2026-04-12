@@ -65,10 +65,10 @@ export default function Inspector({ request: r, onClose, onSaveTemplate }: Inspe
     return (
       <div className="border border-[#333] rounded-lg overflow-hidden bg-[#1e1e1e]">
         <div className="flex justify-between items-center bg-[#2a2a2a] border-b border-[#333] px-4 py-2">
-          <span className="font-semibold text-zinc-500 tracking-wider text-xs uppercase italic">Payload Result</span>
+          <span className="font-semibold text-zinc-500 tracking-wider text-xs uppercase italic">Request Payload</span>
           <div className="flex bg-[#1c1c1c] p-1 rounded border border-[#333]">
-            <button onClick={() => setIsPretty(true)} className={`px-2 py-1 text-[10px] font-bold rounded transition ${isPretty ? 'bg-[#f26b3a] text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>PRETTY</button>
-            <button onClick={() => setIsPretty(false)} className={`px-2 py-1 text-[10px] font-bold rounded transition ${!isPretty ? 'bg-[#f26b3a] text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>RAW</button>
+            <button onClick={() => setIsPretty(true)} className={`px-2 py-1 text-[10px] font-bold rounded transition cursor-pointer ${isPretty ? 'bg-[#f26b3a] text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>PRETTY</button>
+            <button onClick={() => setIsPretty(false)} className={`px-2 py-1 text-[10px] font-bold rounded transition cursor-pointer ${!isPretty ? 'bg-[#f26b3a] text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>RAW</button>
           </div>
         </div>
         <pre className="p-4 text-xs font-mono text-zinc-300 overflow-auto max-h-[400px] leading-relaxed select-text">{display}</pre>
@@ -96,16 +96,37 @@ export default function Inspector({ request: r, onClose, onSaveTemplate }: Inspe
                 <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest">{r.id.split('-')[0]}</span>
               </div>
               <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">Inspection Detail</h2>
-              <div className="text-zinc-500 font-bold text-[9px] uppercase tracking-[0.2em] mt-1 opacity-60">Dispatched at {formatDate(r.createdAt)}</div>
+              
+              <div className="flex gap-8 mt-6">
+                <div>
+                  <div className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Operator</div>
+                  <div className="text-[11px] font-black text-white tracking-tight">{r.requester?.username || 'Unknown'}</div>
+                  <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-tight">{formatDate(r.createdAt)}</div>
+                </div>
+                {r.approver && (
+                  <div className="animate-in fade-in slide-in-from-left-2">
+                    <div className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Verifier</div>
+                    <div className="text-[11px] font-black text-white tracking-tight">{r.approver.username}</div>
+                    <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-tight">{formatDate(r.approvedAt || r.rejectedAt || r.updatedAt || '')}</div>
+                  </div>
+                )}
+                {r.executedAt && (
+                  <div className="animate-in fade-in slide-in-from-left-2">
+                    <div className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Completion</div>
+                    <div className="text-[11px] font-black text-emerald-500 tracking-widest uppercase text-[10px]">SUCCESS</div>
+                    <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-tight">{formatDate(r.executedAt)}</div>
+                  </div>
+                )}
+              </div>
             </div>
-            <button onClick={handleClose} className="p-2 hover:bg-zinc-800 rounded-lg transition text-zinc-500 hover:text-white" aria-label="Close">
+            <button onClick={handleClose} className="p-2 hover:bg-zinc-800 rounded-lg transition text-zinc-500 hover:text-white cursor-pointer" aria-label="Close">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
           <div className="flex items-center gap-3 p-3 bg-zinc-900/80 rounded-xl border border-zinc-800 shadow-inner">
             <span className="text-zinc-500 text-sm">🌐</span>
             <span className="text-sm font-mono text-zinc-400 truncate flex-1 tracking-tight" title={r.url}>{r.url}</span>
-            <button onClick={() => copyToClipboard(r.url)} className="p-2 hover:bg-zinc-800 rounded-lg transition text-zinc-500 hover:text-[#f26b3a] relative group" aria-label="Copy URL">
+            <button onClick={() => copyToClipboard(r.url)} className="p-2 hover:bg-zinc-800 rounded-lg transition text-zinc-500 hover:text-[#f26b3a] relative group cursor-pointer" aria-label="Copy URL">
                 {copied ? (
                     <svg className="w-4 h-4 text-green-500 animate-in zoom-in" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
                 ) : (
@@ -120,12 +141,39 @@ export default function Inspector({ request: r, onClose, onSaveTemplate }: Inspe
 
         {/* Tabs */}
         <div className="flex border-b border-[#333] bg-[#222]">
-          {['Params', 'Headers', 'Response'].map(t => (
-            <button key={t} onClick={() => setTab(t)} className={`px-6 py-4 text-[11px] font-bold tracking-widest uppercase transition-all border-b-2 ${tab === t ? 'border-[#f26b3a] text-white bg-[#f26b3a]/5' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>{t}</button>
-          ))}
+          {['Params', 'Headers', 'Response'].map(t => {
+            let count = 0
+            try {
+              if (t === 'Params') {
+                count = new URL(r.url).searchParams.size
+              } else if (t === 'Headers') {
+                count = Object.keys(JSON.parse(r.headers || '{}')).length
+              } else if (t === 'Response' && r.status === 'EXECUTED' && r.response) {
+                const parsed = JSON.parse(r.response)
+                count = typeof parsed === 'object' ? Object.keys(parsed).length : 1
+              }
+            } catch {
+              count = 0
+            }
+
+            return (
+              <button 
+                key={t} 
+                onClick={() => setTab(t)} 
+                className={`px-6 py-4 text-[11px] font-bold tracking-widest uppercase transition-all border-b-2 flex items-center gap-2 cursor-pointer ${tab === t ? 'border-[#f26b3a] text-white bg-[#f26b3a]/5' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+              >
+                {t}
+                {count > 0 && (
+                  <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black ${tab === t ? 'bg-[#f26b3a] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            )
+          })}
           <button 
             onClick={() => onSaveTemplate(r)} 
-            className="ml-auto mr-6 my-auto px-4 py-2 text-[10px] font-black bg-[#f26b3a] text-white rounded-lg uppercase tracking-widest hover:bg-[#e65c2b] shadow-lg shadow-[#f26b3a]/20 transition flex items-center gap-2"
+            className="ml-auto mr-6 my-auto px-4 py-2 text-[10px] font-black bg-[#f26b3a] text-white rounded-lg uppercase tracking-widest hover:bg-[#e65c2b] shadow-lg shadow-[#f26b3a]/20 transition flex items-center gap-2 cursor-pointer"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" /></svg>
             Save Template
