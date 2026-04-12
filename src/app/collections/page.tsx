@@ -1,19 +1,25 @@
 'use client'
 import useSWR from 'swr'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { UserSession, RequestCollectionData, HttpRequestData } from '@/lib/types'
+import { getMethodColor } from '@/lib/utils'
+import Inspector from '@/components/Inspector'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 export default function Collections() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [toast, setToast] = useState<{ msg: string, type: 'error' | 'success' } | null>(null)
-  const [inspectCollection, setInspectCollection] = useState<any | null>(null)
-  const [inspectTab, setInspectTab] = useState('Params')
 
-  // Create Mode States
+  // Inspection Logic
+  const [selectedTemplate, setSelectedTemplate] = useState<RequestCollectionData | null>(null)
+
+  // Create/Edit Mode States
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createTab, setCreateTab] = useState('Params')
   const [newName, setNewName] = useState('')
@@ -28,69 +34,23 @@ export default function Collections() {
   const [newBody, setNewBody] = useState('')
   const [newIsGlobal, setNewIsGlobal] = useState(false)
   const [editCollectionId, setEditCollectionId] = useState<string | null>(null)
-  const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setInspectCollection(null)
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
-
-  const renderKVTable = (record: Record<string, string>) => {
-    const entries = Object.entries(record)
-    if (entries.length === 0) return <div className="text-zinc-500 italic p-4 text-sm bg-[#1e1e1e] border border-[#333] rounded">No values provided.</div>
-    return (
-      <div className="border border-[#333] rounded overflow-hidden">
-        <div className="grid grid-cols-12 bg-[#2a2a2a] border-b border-[#333] font-semibold text-xs text-zinc-500 tracking-wider">
-          <div className="col-span-4 px-3 py-2 border-r border-[#333]">KEY</div>
-          <div className="col-span-8 px-3 py-2">VALUE</div>
-        </div>
-        {entries.map(([k, v]) => (
-          <div key={k} className="grid grid-cols-12 border-b border-[#333] last:border-b-0 bg-[#1e1e1e] hover:bg-[#252525] transition-colors">
-            <div className="col-span-4 px-3 py-2 border-r border-[#333] font-mono text-zinc-300 break-all">{k}</div>
-            <div className="col-span-8 px-3 py-2 font-mono text-zinc-300 break-all">{v as string}</div>
-          </div>
-        ))}
-      </div>
-    )
-  }
-
-  const handleHeaderRowChange = (index: number, field: 'key' | 'value', val: string) => {
-    const newArr = [...newHeadersArr]
-    newArr[index][field] = val
-    setNewHeadersArr(newArr)
-    if (index === newHeadersArr.length - 1 && val !== '') {
-      setNewHeadersArr([...newArr, { key: '', value: '' }])
-    }
-  }
-
-  const handleRemoveHeaderRow = (index: number) => {
-    setNewHeadersArr(newHeadersArr.filter((_, i) => i !== index))
-  }
-
-  const handleParamRowChange = (index: number, field: 'key' | 'value', val: string) => {
-    const newArr = [...newParamsArr]
-    newArr[index][field] = val
-    setNewParamsArr(newArr)
-    if (index === newParamsArr.length - 1 && val !== '') {
-      setNewParamsArr([...newArr, { key: '', value: '' }])
-    }
-  }
-
-  const handleRemoveParamRow = (index: number) => {
-    setNewParamsArr(newParamsArr.filter((_, i) => i !== index))
-  }
 
   const showToast = (msg: string, type: 'error' | 'success' = 'error') => {
     setToast({ msg, type })
     setTimeout(() => setToast(null), 3000)
   }
-  const { data: auth, error: authError } = useSWR('/api/auth/me', fetcher)
-  const { data: cols, mutate } = useSWR(auth?.user ? '/api/collections' : null, fetcher)
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), 300)
+    return () => clearTimeout(t)
+  }, [searchQuery])
+
+  const { data: auth, error: authError } = useSWR<{ user: UserSession } | null>('/api/auth/me', fetcher)
+  const { data: cols, mutate } = useSWR<{ collections: RequestCollectionData[] } | null>(
+    auth?.user ? `/api/collections?q=${encodeURIComponent(debouncedQuery)}` : null,
+    fetcher
+  )
 
   useEffect(() => {
     if (authError || (auth && !auth.user)) {
@@ -98,15 +58,26 @@ export default function Collections() {
     }
   }, [auth, authError, router])
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedTemplate(null)
+        setShowCreateModal(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   if (authError || (auth && !auth.user)) return null
-  if (!auth || !cols) return <div className="min-h-screen bg-[#1c1c1c] p-8 text-white flex justify-center items-center font-mono">Loading...</div>
+  if (!auth || !cols) return <div className="min-h-screen bg-[#1c1c1c] p-8 text-white flex justify-center items-center font-mono italic opacity-50 uppercase tracking-[0.2em]">Synchronizing Registry...</div>
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
     router.push('/login')
   }
 
-  const handleDraft = (c: any) => {
+  const handleDraft = (c: RequestCollectionData) => {
     sessionStorage.setItem('clone_request', JSON.stringify({
       method: c.method,
       url: c.url,
@@ -116,35 +87,31 @@ export default function Collections() {
     router.push('/create')
   }
 
-  const handleDelete = async () => {
-    if (!deleteId) return
-    setIsDeleting(true)
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    if (!confirm('Are you sure you want to delete this blueprint?')) return
     try {
-      const res = await fetch(`/api/collections/${deleteId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/collections/${id}`, { method: 'DELETE' })
       if (res.ok) {
         mutate()
         showToast('Template deleted successfully', 'success')
-        setDeleteId(null)
       } else {
         const err = await res.json()
         showToast('Failed: ' + err.error, 'error')
       }
-    } catch (err) {
+    } catch {
       showToast('Network error')
-    } finally {
-      setIsDeleting(false)
     }
   }
 
-  const handleEditStart = (e: React.MouseEvent, c: any) => {
+  const handleEditStart = (e: React.MouseEvent, c: RequestCollectionData) => {
     e.stopPropagation()
     setEditCollectionId(c.id)
     setNewName(c.name)
     setNewMethod(c.method)
     setNewBody(c.body || '')
     setNewIsGlobal(c.isGlobal)
-    
-    // Parse URL and Params
+
     let targetUrl = c.url || ''
     try {
       const u = new URL(targetUrl)
@@ -152,12 +119,11 @@ export default function Collections() {
       u.searchParams.forEach((v, k) => pArr.push({ key: k, value: v }))
       setNewParamsArr(pArr.length > 0 ? [...pArr, { key: '', value: '' }] : [{ key: '', value: '' }])
       targetUrl = u.origin + u.pathname
-    } catch(e) {
+    } catch {
       setNewParamsArr([{ key: '', value: '' }])
     }
     setNewUrl(targetUrl)
 
-    // Parse Headers and Auth
     if (c.headers) {
       try {
         const hObj = JSON.parse(c.headers)
@@ -178,7 +144,7 @@ export default function Collections() {
                 setNewBasicUser(user)
                 setNewBasicPass(pass.join(':'))
                 authFound = true
-              } catch(e) {}
+              } catch { }
             } else {
               hArr.push({ key: k, value: val })
             }
@@ -188,7 +154,7 @@ export default function Collections() {
         })
         if (!authFound) setNewAuthType('None')
         setNewHeadersArr(hArr.length > 0 ? [...hArr, { key: '', value: '' }] : [{ key: '', value: '' }])
-      } catch(e) {
+      } catch {
         setNewHeadersArr([{ key: '', value: '' }])
       }
     } else {
@@ -207,7 +173,6 @@ export default function Collections() {
     }
     setIsSaving(true)
 
-    // Merge Params into URL
     let finalUrl = newUrl
     const validParams = newParamsArr.filter(p => p.key.trim() !== '')
     if (validParams.length > 0) {
@@ -215,7 +180,7 @@ export default function Collections() {
         const urlObj = new URL(newUrl)
         validParams.forEach(p => urlObj.searchParams.append(p.key.trim(), p.value.trim()))
         finalUrl = urlObj.toString()
-      } catch (err) {
+      } catch {
         const qs = validParams.map(p => `${encodeURIComponent(p.key.trim())}=${encodeURIComponent(p.value.trim())}`).join('&')
         finalUrl = finalUrl.includes('?') ? `${finalUrl}&${qs}` : `${finalUrl}?${qs}`
       }
@@ -226,7 +191,6 @@ export default function Collections() {
       if (h.key.trim()) parsedHeaders[h.key.trim()] = h.value.trim()
     })
 
-    // Handle Auth injection
     if (newAuthType === 'Bearer Token' && newBearerToken.trim() !== '') {
       parsedHeaders['Authorization'] = `Bearer ${newBearerToken.trim()}`
     } else if (newAuthType === 'Basic Auth' && (newBasicUser || newBasicPass)) {
@@ -251,82 +215,81 @@ export default function Collections() {
       if (res.ok) {
         mutate()
         setShowCreateModal(false)
-        showToast(editCollectionId ? 'Template updated successfully' : 'Template created successfully', 'success')
-        // Reset form
-        setEditCollectionId(null)
-        setNewName('')
-        setNewMethod('GET')
-        setNewUrl('')
-        setNewParamsArr([{ key: '', value: '' }])
-        setNewHeadersArr([{ key: '', value: '' }])
-        setNewAuthType('None')
-        setNewBearerToken('')
-        setNewBasicUser('')
-        setNewBasicPass('')
-        setNewBody('')
-        setNewIsGlobal(false)
+        showToast(editCollectionId ? 'Blueprint updated' : 'Blueprint construction complete', 'success')
       } else {
         const err = await res.json()
-        showToast('Failed to create: ' + err.error, 'error')
+        showToast('Construction failed: ' + err.error, 'error')
       }
-    } catch (err) {
-      showToast('Network error occurred', 'error')
     } finally {
       setIsSaving(false)
     }
   }
 
-  const handleToggleGlobal = async (c: any) => {
+  const handleToggleGlobal = async (e: React.MouseEvent, c: RequestCollectionData) => {
+    e.stopPropagation()
     const res = await fetch(`/api/collections/${c.id}`, {
       method: 'PATCH',
       body: JSON.stringify({ isGlobal: !c.isGlobal })
     })
     if (res.ok) {
       mutate()
-      showToast(`Template is now ${!c.isGlobal ? 'Global' : 'Private'}`, 'success')
-    } else {
-      const err = await res.json()
-      showToast('Failed to toggle visibility: ' + err.error, 'error')
+      showToast(`Blueprint is now ${!c.isGlobal ? 'Global' : 'Private'}`, 'success')
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#1c1c1c] p-8 text-white font-sans">
+    <div className="min-h-screen bg-[#1c1c1c] p-8 text-white font-sans selection:bg-[#f26b3a]/30">
       <div className="max-w-6xl mx-auto">
-        {/* Navigation Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-10">
-            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
-              <img src="/logo.svg" alt="Heimdall Logo" className="w-10 h-10" />
+        {/* Premium Header */}
+        <div className="flex justify-between items-center mb-12">
+          <div className="flex items-center gap-12">
+            <Link href="/" className="flex items-center gap-4 hover:opacity-80 transition cursor-pointer group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-[#f26b3a] blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                <Image src="/logo.svg" alt="Heimdall Logo" width={48} height={48} className="relative z-10" />
+              </div>
               <div className="flex flex-col">
-                <h1 className="text-2xl font-black tracking-tighter text-white leading-none">HEIMDALL</h1>
-                <span className="text-[10px] font-bold text-[#00C2FF] tracking-[.2em] leading-none mt-1 uppercase">Project</span>
+                <h1 className="text-3xl font-black tracking-tighter text-white leading-none italic uppercase">HEIMDALL</h1>
+                <span className="text-[10px] font-black text-[#00C2FF] tracking-[.4em] leading-none mt-1.5 uppercase opacity-80">Security Audit Platform</span>
               </div>
             </Link>
-            <nav className="flex gap-6 text-sm font-semibold tracking-wide mt-2">
-              <Link href="/" className="text-zinc-500 hover:text-zinc-300 transition">Dashboard</Link>
-              <Link href="/collections" className="text-[#f26b3a] border-b-2 border-[#f26b3a] pb-1">Collections</Link>
+            <nav className="flex gap-8 text-[11px] font-black tracking-[0.15em] mt-2 uppercase">
+              <Link href="/" className="text-zinc-500 hover:text-zinc-200 transition pb-2">Dashboard</Link>
+              <Link href="/collections" className="text-[#f26b3a] border-b-2 border-[#f26b3a] pb-2">Collections</Link>
             </nav>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-zinc-400 text-sm">Logged in as <span className="text-white font-medium">{auth.user.username}</span> ({auth.user.role})</span>
-            <button onClick={handleLogout} className="px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 text-white rounded-md transition ring-1 ring-zinc-700 cursor-pointer">Logout</button>
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Operator Access</span>
+              <span className="text-sm font-black text-white italic tracking-tight">{auth.user.username} <span className="text-[10px] text-[#f26b3a] not-italic ml-1">[{auth.user.role}]</span></span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="p-3 bg-zinc-800/50 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-xl transition border border-zinc-700/50 hover:border-zinc-600 shadow-xl flex items-center gap-2 group cursor-pointer"
+              aria-label="Logout"
+            >
+              <svg className="w-5 h-5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            </button>
           </div>
         </div>
 
-        <div className="mb-6 flex justify-between items-end gap-4">
-          <div className="flex-grow flex flex-col">
-            <h2 className="text-xl font-bold text-white">Request Templates</h2>
-            <p className="text-zinc-400 text-sm mt-1">Standardized blueprints configured for immediate rapid access.</p>
+        {/* Title & Actions */}
+        <div className="flex justify-between items-end mb-10 gap-6">
+          <div className="flex-1 max-w-lg">
+            <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">Registry & Blueprints</h2>
+            <p className="text-zinc-500 text-xs font-bold uppercase tracking-[0.2em] opacity-60">Standardized templates for immediate payload dispatch.</p>
           </div>
-          <div className="flex items-center gap-3 w-full max-w-xl">
-            <div className="relative flex-grow">
+          <div className="flex items-center gap-3 w-full max-w-2xl">
+            <div className="relative flex-1 group">
+              <div className="absolute inset-y-0 left-4 flex items-center text-zinc-600 group-focus-within:text-[#f26b3a] transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              </div>
               <input
                 type="text"
-                placeholder="Search blueprints..."
+                placeholder="Search blueprints by name or URL..."
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-white focus:ring-2 focus:ring-[#f26b3a] outline-none"
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#2a2a2a] border border-[#333] pl-12 pr-4 py-3 rounded-2xl text-sm text-zinc-300 outline-none focus:border-[#f26b3a] focus:ring-4 focus:ring-[#f26b3a]/10 transition shadow-inner placeholder:text-zinc-600 placeholder:italic placeholder:font-medium"
               />
             </div>
             <button
@@ -345,69 +308,62 @@ export default function Collections() {
                 setNewIsGlobal(false)
                 setShowCreateModal(true)
               }}
-              className="bg-[#f26b3a] hover:bg-[#e65c2b] text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition shadow-lg cursor-pointer whitespace-nowrap"
+              className="bg-gradient-to-r from-[#f26b3a] to-[#e65c2b] hover:from-[#e65c2b] hover:to-[#f26b3a] text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-[#f26b3a]/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center gap-3 whitespace-nowrap"
             >
-              <span>+</span>
-              <span>Create Template</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
+              Create Blueprint
             </button>
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-[#333] rounded-xl overflow-hidden shadow-2xl">
+        {/* Premium Table Container */}
+        <div className="bg-zinc-900/50 backdrop-blur-xl border border-[#333] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden mb-20">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#2a2a2a] border-b border-[#333]">
-                <th className="p-4 font-semibold text-xs tracking-wider text-zinc-400">NAME & CREATOR</th>
-                <th className="p-4 font-semibold text-xs tracking-wider text-zinc-400">METHOD</th>
-                <th className="p-4 font-semibold text-xs tracking-wider text-zinc-400">URL</th>
-                <th className="p-4 font-semibold text-xs tracking-wider text-zinc-400">VISIBILITY</th>
-                <th className="p-4 font-semibold text-xs tracking-wider text-zinc-400">CREATED</th>
-                <th className="p-4 font-semibold text-xs tracking-wider text-zinc-400 text-right">ACTIONS</th>
+              <tr className="bg-[#2a2a2a]/30 border-b border-[#333]">
+                <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase">Template Name</th>
+                <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase">Method</th>
+                <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase">Target Endpoint</th>
+                <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase">Visibility</th>
+                <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase">Creator</th>
+                <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase text-right px-8">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-zinc-800">
               {cols.collections.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="p-12 text-center text-zinc-500 text-sm">
-                    No collections found. Head over to the Dashboard to save a Payload Template!
-                  </td>
-                </tr>
+                <tr><td colSpan={6} className="p-16 text-center text-zinc-600 text-sm font-bold uppercase italic tracking-widest bg-zinc-900/20">Blueprint registry is currently empty.</td></tr>
               )}
-              {cols.collections.filter((c: any) => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.url.toLowerCase().includes(searchQuery.toLowerCase())).map((c: any) => (
+              {cols.collections.map((c: RequestCollectionData) => (
                 <tr
                   key={c.id}
-                  onClick={() => { setInspectCollection(c); setInspectTab('Params') }}
-                  className="border-b border-[#333] last:border-b-0 hover:bg-[#252525] transition cursor-pointer group"
+                  onClick={() => setSelectedTemplate(c)}
+                  className="group hover:bg-[#2a2a2a]/40 transition-colors cursor-pointer"
                 >
-                  <td className="p-4">
-                    <div className="font-bold text-white group-hover:text-[#f26b3a] transition-colors">{c.name}</div>
-                    <div className="text-[10px] text-zinc-500 uppercase tracking-tight mt-0.5">By {c.creator?.username || 'Unknown'}</div>
+                  <td className="p-5">
+                    <div className="text-sm font-black text-white italic group-hover:text-[#f26b3a] transition-colors uppercase tracking-tight">{c.name}</div>
+                    <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-1">Registry ID: {c.id.split('-')[0]}</div>
                   </td>
-                  <td className="p-4">
-                    <span className={`font-semibold tracking-wider text-xs px-2 py-0.5 rounded ${c.method === 'GET' ? 'bg-[#4caf50]/10 text-[#4caf50]' :
-                      c.method === 'POST' ? 'bg-[#ffb300]/10 text-[#ffb300]' :
-                        c.method === 'PUT' ? 'bg-[#2196f3]/10 text-[#2196f3]' :
-                          c.method === 'PATCH' ? 'bg-[#9c27b0]/10 text-[#9c27b0]' : 'bg-[#f44336]/10 text-[#f44336]'
-                      }`}>{c.method}</span>
+                  <td className="p-5">
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase border ${getMethodColor(c.method)} bg-zinc-800/50 tracking-widest`}>{c.method}</span>
                   </td>
-                  <td className="p-4 text-zinc-400 font-mono text-xs max-w-[200px] truncate" title={c.url}>
-                    {c.url}
+                  <td className="p-5">
+                    <div className="text-xs font-mono text-zinc-400 truncate max-w-[240px] tracking-tighter" title={c.url}>{c.url}</div>
                   </td>
-                  <td className="p-4">
+                  <td className="p-5">
                     {c.isGlobal ? (
-                      <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase rounded border border-blue-500/20">Global</span>
+                      <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase rounded border border-blue-500/20 tracking-widest">Global</span>
                     ) : (
-                      <span className="px-2 py-0.5 bg-zinc-800 text-zinc-500 text-[10px] font-bold uppercase rounded border border-zinc-700">Private</span>
+                      <span className="px-2 py-0.5 bg-zinc-800 text-zinc-500 text-[10px] font-black uppercase rounded border border-zinc-700 tracking-widest">Private</span>
                     )}
                   </td>
-                  <td className="p-4 text-zinc-500 text-xs font-medium">
-                    {new Date(c.createdAt).toLocaleDateString()}
+                  <td className="p-5">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">{c.creator?.username || 'Core System'}</span>
                   </td>
-                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-end gap-2">
+                  <td className="p-5" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-3 px-3">
                       <button
                         onClick={() => handleDraft(c)}
-                        className="px-3 py-1.5 bg-[#f26b3a] hover:bg-[#e65c2b] text-white text-xs font-bold rounded shadow transition whitespace-nowrap cursor-pointer"
+                        className="px-4 py-1.5 bg-[#f26b3a]/10 hover:bg-[#f26b3a] text-[#f26b3a] hover:text-white text-[10px] font-black rounded-lg border border-[#f26b3a]/30 transition uppercase tracking-widest cursor-pointer"
                       >
                         Draft
                       </button>
@@ -415,31 +371,24 @@ export default function Collections() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={(e) => handleEditStart(e, c)}
-                            title="Edit Template"
-                            className="p-1.5 bg-yellow-500/10 border border-yellow-500/50 text-yellow-500 hover:bg-yellow-500 hover:text-white rounded transition cursor-pointer"
+                            className="p-2 bg-zinc-800/50 hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-700/50 rounded-lg transition cursor-pointer"
+                            title="Edit Configuration"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                            </svg>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                           </button>
                           <button
-                            onClick={() => handleToggleGlobal(c)}
-                            title={c.isGlobal ? "Make Private" : "Share Globally"}
-                            className={`p-1.5 rounded border transition-colors cursor-pointer ${c.isGlobal ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300' : 'bg-zinc-800 border-zinc-700 text-zinc-500 hover:text-white hover:border-zinc-500'}`}
+                            onClick={(e) => handleToggleGlobal(e, c)}
+                            className={`p-2 rounded-lg border transition cursor-pointer ${c.isGlobal ? 'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-600 hover:text-white'}`}
+                            title={c.isGlobal ? "Revoke Public Access" : "Publish to Global"}
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                            </svg>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                           </button>
                           <button
-                            onClick={(e) => { e.stopPropagation(); setDeleteId(c.id); }}
-                            className="p-1.5 bg-red-900/10 hover:bg-red-600 border border-red-900/50 hover:border-red-600 text-red-500 hover:text-white rounded transition cursor-pointer"
-                            title="Delete"
+                            onClick={(e) => handleDelete(e, c.id)}
+                            className="p-2 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 rounded-lg transition cursor-pointer"
+                            title="Decommission Blueprint"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 000-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                           </button>
                         </div>
                       )}
@@ -450,399 +399,192 @@ export default function Collections() {
             </tbody>
           </table>
         </div>
-
       </div>
 
+      {/* Blueprint Construction Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 p-4" onClick={() => { setShowCreateModal(false); setEditCollectionId(null); }}>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in" onClick={() => { setShowCreateModal(false); setEditCollectionId(null); }}>
           <form
             onSubmit={handleSaveCollection}
-            className="bg-[#212121] border border-[#333] rounded-xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl relative"
+            className="bg-[#1c1c1c] border border-[#333] rounded-[2.5rem] max-w-4xl w-full max-h-[90vh] flex flex-col shadow-[0_0_100px_rgba(0,0,0,0.8)] relative animate-slide-in-up"
             onClick={e => e.stopPropagation()}
           >
-            <div className="p-6 pb-2">
-              <div className="flex justify-between items-start mb-4">
+            <div className="p-10 pb-6 border-b border-[#333]">
+              <div className="flex justify-between items-start mb-8">
                 <div>
-                  <h2 className="text-xl font-bold text-white tracking-tight">{editCollectionId ? 'Edit Request Template' : 'Create Request Template'}</h2>
-                  <p className="text-xs text-zinc-500 mt-1 uppercase tracking-widest font-mono">{editCollectionId ? 'Update Existing Blueprint' : 'Blueprint Construction Mode'}</p>
+                  <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{editCollectionId ? 'Blueprint Refinement' : 'Blueprint Construction'}</h2>
+                  <p className="text-[10px] text-zinc-500 mt-2 font-black uppercase tracking-[0.3em] opacity-60">Serializing audit standardized configurations</p>
                 </div>
-                <button type="button" onClick={() => { setShowCreateModal(false); setEditCollectionId(null); }} className="text-zinc-500 hover:text-white transition text-2xl font-light leading-none cursor-pointer">&times;</button>
+                <button type="button" onClick={() => { setShowCreateModal(false); setEditCollectionId(null); }} className="p-2 hover:bg-zinc-800 rounded-xl transition text-zinc-500 hover:text-white cursor-pointer">&times;</button>
               </div>
 
-              <div className="grid grid-cols-6 gap-4 mt-6">
-                <div className="col-span-4">
-                  <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Template Name</label>
+              <div className="grid grid-cols-12 gap-6">
+                <div className="col-span-8">
+                  <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Blueprint Identity</label>
                   <input
                     required
                     type="text"
                     value={newName}
                     onChange={e => setNewName(e.target.value)}
-                    placeholder="e.g. User Profile Sync Payload"
-                    className="w-full bg-[#1e1e1e] border border-[#333] rounded px-3 py-2 text-white outline-none focus:border-[#f26b3a] transition"
+                    placeholder="e.g. AUTH_V2_PROFILE_VALIDATOR"
+                    className="w-full bg-[#2a2a2a] border border-[#333] rounded-2xl px-5 py-3 text-sm text-white focus:border-[#f26b3a] focus:ring-4 focus:ring-[#f26b3a]/10 transition outline-none"
                   />
                 </div>
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Visibility</label>
-                  <label className="flex items-center justify-between cursor-pointer p-2 border border-[#333] rounded bg-[#1e1e1e] hover:bg-[#252525] transition h-[42px] px-3">
-                    <span className="text-xs font-medium text-zinc-300">{newIsGlobal ? 'Global Access' : 'Private'}</span>
-                    <div className="relative inline-block w-8 h-4 transition duration-200 ease-in">
-                      <input
-                        type="checkbox"
-                        checked={newIsGlobal}
-                        onChange={e => setNewIsGlobal(e.target.checked)}
-                        className="opacity-0 w-0 h-0 peer"
-                      />
-                      <span className="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-zinc-700 transition duration-300 rounded-full peer-checked:bg-[#f26b3a]"></span>
-                      <span className="absolute cursor-pointer left-1 bottom-1 bg-white w-2 h-2 transition duration-300 rounded-full peer-checked:translate-x-4"></span>
-                    </div>
-                  </label>
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1.5">HTTP Method</label>
-                  <div className="relative">
-                    <select
-                      value={newMethod}
-                      onChange={e => setNewMethod(e.target.value)}
-                      className={`w-full bg-[#1e1e1e] border border-[#333] rounded px-3 py-2 outline-none font-bold text-sm h-[42px] cursor-pointer appearance-none pr-8 ${newMethod === 'GET' ? 'text-[#4caf50]' : newMethod === 'POST' ? 'text-[#ffb300]' : newMethod === 'PUT' ? 'text-[#2196f3]' : newMethod === 'PATCH' ? 'text-[#9c27b0]' : 'text-[#f44336]'}`}
-                    >
-                      <option value="GET">GET</option>
-                      <option value="POST">POST</option>
-                      <option value="PUT">PUT</option>
-                      <option value="PATCH">PATCH</option>
-                      <option value="DELETE">DELETE</option>
-                    </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </div>
+                <div className="col-span-4">
+                  <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Access Visibility</label>
+                  <div className="flex items-center justify-between bg-[#2a2a2a] border border-[#333] rounded-2xl p-3.5 px-5">
+                    <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{newIsGlobal ? 'Global' : 'Private'}</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" checked={newIsGlobal} onChange={e => setNewIsGlobal(e.target.checked)} className="sr-only peer" />
+                      <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#f26b3a]"></div>
+                    </label>
                   </div>
                 </div>
-                <div className="col-span-4">
-                  <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Endpoint URL</label>
+                <div className="col-span-3">
+                  <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Protocol Method</label>
+                  <select
+                    value={newMethod}
+                    onChange={e => setNewMethod(e.target.value)}
+                    className={`w-full bg-[#2a2a2a] border border-[#333] rounded-2xl px-5 py-3.5 text-sm font-black outline-none focus:border-[#f26b3a] transition cursor-pointer appearance-none ${getMethodColor(newMethod)}`}
+                  >
+                    {['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(m => <option key={m} value={m} className="bg-[#1c1c1c] text-white">{m}</option>)}
+                  </select>
+                </div>
+                <div className="col-span-9">
+                  <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Infrastructure URL</label>
                   <input
                     required
                     type="url"
                     value={newUrl}
                     onChange={e => setNewUrl(e.target.value)}
-                    placeholder="Enter request URL"
-                    className="w-full bg-[#1e1e1e] border border-[#333] rounded px-3 py-2 text-white font-mono text-sm outline-none focus:border-[#f26b3a] transition"
+                    placeholder="https://infrastructure.api/v1/resource"
+                    className="w-full bg-[#2a2a2a] border border-[#333] rounded-2xl px-5 py-3.5 text-sm font-mono text-zinc-300 focus:border-[#f26b3a] transition outline-none"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-6 border-b border-[#333] mt-8">
+              <div className="flex gap-10 mt-10">
                 {['Params', 'Auth', 'Headers', 'Body'].map(tab => (
                   <button
                     key={tab}
                     type="button"
                     onClick={() => setCreateTab(tab)}
-                    className={`pb-2 px-1 text-xs font-bold uppercase tracking-widest transition-colors ${createTab === tab ? 'text-zinc-200 border-b-2 border-[#f26b3a]' : 'text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent'}`}
+                    className={`pb-3 text-[11px] font-black uppercase tracking-[0.2em] transition-all border-b-2 cursor-pointer ${createTab === tab ? 'border-[#f26b3a] text-white' : 'border-transparent text-zinc-600 hover:text-zinc-400'}`}
                   >
                     {tab}
-                    {tab === 'Auth' && newAuthType !== 'None' ? (
-                      <span className="ml-1 w-1.5 h-1.5 rounded-full bg-[#f26b3a] inline-block mb-1"></span>
-                    ) : null}
                     {(tab === 'Params' && newParamsArr.filter(p => p.key.trim()).length > 0) || (tab === 'Headers' && newHeadersArr.filter(h => h.key.trim()).length > 0) ? (
-                      <span className="ml-1 text-[#4caf50]">({tab === 'Params' ? newParamsArr.filter(p => p.key.trim()).length : newHeadersArr.filter(h => h.key.trim()).length})</span>
+                      <span className="ml-2 text-[#4caf50]">({tab === 'Params' ? newParamsArr.filter(p => p.key.trim()).length : newHeadersArr.filter(h => h.key.trim()).length})</span>
                     ) : null}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="p-6 pt-4 overflow-y-auto flex-grow text-sm min-h-[250px]">
+            <div className="p-10 py-6 overflow-y-auto flex-grow bg-black/20">
               {createTab === 'Params' && (
-                <div className="border border-[#333] rounded overflow-hidden">
-                  <div className="grid grid-cols-12 bg-[#2a2a2a] border-b border-[#333] font-bold text-xs text-zinc-500 uppercase tracking-widest">
-                    <div className="col-span-5 px-3 py-2 border-r border-[#333]">Key</div>
-                    <div className="col-span-6 px-3 py-2">Value</div>
-                    <div className="col-span-1 border-l border-[#333]"></div>
-                  </div>
+                <div className="space-y-3">
                   {newParamsArr.map((h, i) => (
-                    <div key={i} className="grid grid-cols-12 border-b border-[#333] last:border-b-0 bg-[#1e1e1e] group">
-                      <div className="col-span-5 border-r border-[#333]">
-                        <input
-                          type="text"
-                          value={h.key}
-                          onChange={e => handleParamRowChange(i, 'key', e.target.value)}
-                          placeholder="Key"
-                          className="w-full bg-transparent px-3 py-1.5 outline-none text-zinc-300 font-mono text-xs focus:bg-[#252525]"
-                        />
-                      </div>
-                      <div className="col-span-6 border-r border-[#333]">
-                        <input
-                          type="text"
-                          value={h.value}
-                          onChange={e => handleParamRowChange(i, 'value', e.target.value)}
-                          placeholder="Value"
-                          className="w-full bg-transparent px-3 py-1.5 outline-none text-zinc-300 font-mono text-xs focus:bg-[#252525]"
-                        />
-                      </div>
-                      <div className="col-span-1 flex items-center justify-center border-l border-[#333]">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveParamRow(i)}
-                          className={`text-zinc-500 hover:text-red-500 transition cursor-pointer ${newParamsArr.length === 1 ? 'opacity-0' : ''}`}
-                        >
-                          &times;
-                        </button>
-                      </div>
+                    <div key={i} className="flex gap-3 group">
+                      <input type="text" value={h.key} onChange={e => { const a = [...newParamsArr]; a[i].key = e.target.value; setNewParamsArr(a); if (i === a.length - 1 && e.target.value) setNewParamsArr([...a, { key: '', value: '' }]); }} placeholder="Key" className="flex-1 bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2 text-xs font-mono text-zinc-300 focus:border-[#f26b3a] outline-none transition" />
+                      <input type="text" value={h.value} onChange={e => { const a = [...newParamsArr]; a[i].value = e.target.value; setNewParamsArr(a); }} placeholder="Value" className="flex-[2] bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2 text-xs font-mono text-zinc-300 focus:border-[#f26b3a] outline-none transition" />
+                      <button type="button" onClick={() => setNewParamsArr(newParamsArr.filter((_, idx) => idx !== i))} className={`p-2 hover:bg-red-500/10 text-zinc-600 hover:text-red-500 transition ${newParamsArr.length === 1 ? 'opacity-0 pointer-events-none' : ''}`}>&times;</button>
                     </div>
                   ))}
                 </div>
               )}
-
               {createTab === 'Auth' && (
-                <div className="h-full flex flex-col border border-[#333] rounded bg-[#1e1e1e]">
-                  <div className="p-4 border-b border-[#333] flex items-center gap-4">
-                    <span className="text-zinc-500 font-bold text-[10px] tracking-widest uppercase">Auth Type</span>
-                    <select
-                      value={newAuthType}
-                      onChange={e => setNewAuthType(e.target.value)}
-                      className="bg-[#2a2a2a] text-zinc-300 text-xs outline-none px-3 py-1.5 border border-[#333] rounded cursor-pointer focus:border-[#f26b3a]"
-                    >
-                      <option value="None">No Auth</option>
-                      <option value="Bearer Token">Bearer Token</option>
-                      <option value="Basic Auth">Basic Auth</option>
+                <div className="max-w-md space-y-6 bg-zinc-900/40 p-6 rounded-3xl border border-zinc-800 shadow-inner">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Authentication Mechanism</label>
+                    <select value={newAuthType} onChange={e => setNewAuthType(e.target.value)} className="bg-[#1c1c1c] border border-zinc-800 rounded-xl px-4 py-2 text-xs font-bold text-zinc-400 outline-none focus:border-[#f26b3a] transition cursor-pointer">
+                      <option value="None">None / Open Access</option>
+                      <option value="Bearer Token">Bearer Token (JWT)</option>
+                      <option value="Basic Auth">Basic Authentication</option>
                     </select>
                   </div>
-                  <div className="p-6">
-                    {newAuthType === 'None' && <p className="text-zinc-500 text-xs italic">This request does not use any authorization.</p>}
-                    {newAuthType === 'Bearer Token' && (
-                      <div className="flex flex-col gap-2 max-w-md">
-                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Bearer Token</label>
-                        <input
-                          type="text"
-                          value={newBearerToken}
-                          onChange={e => setNewBearerToken(e.target.value)}
-                          placeholder="Enter Bearer Token"
-                          className="bg-[#2a2a2a] px-3 py-2 border border-[#333] rounded text-zinc-300 font-mono text-xs outline-none focus:border-[#f26b3a]"
-                        />
+                  {newAuthType === 'Bearer Token' && (
+                    <div className="flex flex-col gap-2 animate-in slide-in-from-top-2">
+                      <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Token String</label>
+                      <input type="text" value={newBearerToken} onChange={e => setNewBearerToken(e.target.value)} className="bg-[#1c1c1c] border border-zinc-800 rounded-xl px-4 py-2 text-xs font-mono text-zinc-300 outline-none focus:border-[#f26b3a] transition" />
+                    </div>
+                  )}
+                  {newAuthType === 'Basic Auth' && (
+                    <div className="space-y-4 animate-in slide-in-from-top-2">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Username</label>
+                        <input type="text" value={newBasicUser} onChange={e => setNewBasicUser(e.target.value)} className="bg-[#1c1c1c] border border-zinc-800 rounded-xl px-4 py-2 text-xs font-mono text-zinc-300 outline-none focus:border-[#f26b3a] transition" />
                       </div>
-                    )}
-                    {newAuthType === 'Basic Auth' && (
-                      <div className="flex flex-col gap-4 max-w-md">
-                        <div className="flex flex-col gap-2">
-                          <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Username</label>
-                          <input
-                            type="text"
-                            value={newBasicUser}
-                            onChange={e => setNewBasicUser(e.target.value)}
-                            className="bg-[#2a2a2a] px-3 py-2 border border-[#333] rounded text-zinc-300 font-mono text-xs outline-none focus:border-[#f26b3a]"
-                          />
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Password</label>
-                          <input
-                            type="password"
-                            value={newBasicPass}
-                            onChange={e => setNewBasicPass(e.target.value)}
-                            className="bg-[#2a2a2a] px-3 py-2 border border-[#333] rounded text-zinc-300 font-mono text-xs outline-none focus:border-[#f26b3a]"
-                          />
-                        </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Secret Key / Password</label>
+                        <input type="password" value={newBasicPass} onChange={e => setNewBasicPass(e.target.value)} className="bg-[#1c1c1c] border border-zinc-800 rounded-xl px-4 py-2 text-xs font-mono text-zinc-300 outline-none focus:border-[#f26b3a] transition" />
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
-
               {createTab === 'Headers' && (
-                <div className="border border-[#333] rounded overflow-hidden">
-                  <div className="grid grid-cols-12 bg-[#2a2a2a] border-b border-[#333] font-bold text-xs text-zinc-500 uppercase tracking-widest">
-                    <div className="col-span-5 px-3 py-2 border-r border-[#333]">Key</div>
-                    <div className="col-span-6 px-3 py-2">Value</div>
-                    <div className="col-span-1 border-l border-[#333]"></div>
-                  </div>
+                <div className="space-y-3">
                   {newHeadersArr.map((h, i) => (
-                    <div key={i} className="grid grid-cols-12 border-b border-[#333] last:border-b-0 bg-[#1e1e1e] group">
-                      <div className="col-span-5 border-r border-[#333]">
-                        <input
-                          type="text"
-                          value={h.key}
-                          onChange={e => handleHeaderRowChange(i, 'key', e.target.value)}
-                          placeholder="Key"
-                          className="w-full bg-transparent px-3 py-1.5 outline-none text-zinc-300 font-mono text-xs focus:bg-[#252525]"
-                        />
-                      </div>
-                      <div className="col-span-6 border-r border-[#333]">
-                        <input
-                          type="text"
-                          value={h.value}
-                          onChange={e => handleHeaderRowChange(i, 'value', e.target.value)}
-                          placeholder="Value"
-                          className="w-full bg-transparent px-3 py-1.5 outline-none text-zinc-300 font-mono text-xs focus:bg-[#252525]"
-                        />
-                      </div>
-                      <div className="col-span-1 flex items-center justify-center border-l border-[#333]">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveHeaderRow(i)}
-                          className={`text-zinc-500 hover:text-red-500 transition cursor-pointer ${newHeadersArr.length === 1 ? 'opacity-0' : ''}`}
-                        >
-                          &times;
-                        </button>
-                      </div>
+                    <div key={i} className="flex gap-3 group">
+                      <input type="text" value={h.key} onChange={e => { const a = [...newHeadersArr]; a[i].key = e.target.value; setNewHeadersArr(a); if (i === a.length - 1 && e.target.value) setNewHeadersArr([...a, { key: '', value: '' }]); }} placeholder="Header Key" className="flex-1 bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2 text-xs font-mono text-zinc-300 focus:border-[#f26b3a] outline-none transition" />
+                      <input type="text" value={h.value} onChange={e => { const a = [...newHeadersArr]; a[i].value = e.target.value; setNewHeadersArr(a); }} placeholder="Value" className="flex-[2] bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2 text-xs font-mono text-zinc-300 focus:border-[#f26b3a] outline-none transition" />
+                      <button type="button" onClick={() => setNewHeadersArr(newHeadersArr.filter((_, idx) => idx !== i))} className={`p-2 hover:bg-red-500/10 text-zinc-600 hover:text-red-500 transition cursor-pointer ${newHeadersArr.length === 1 ? 'opacity-0 pointer-events-none' : ''}`}>&times;</button>
                     </div>
                   ))}
                 </div>
               )}
-
               {createTab === 'Body' && (
-                <textarea
-                  value={newBody}
-                  onChange={e => setNewBody(e.target.value)}
-                  placeholder={`{\n  // Enter JSON body here\n}`}
-                  className="w-full h-40 bg-[#1e1e1e] border border-[#333] rounded p-4 font-mono text-sm text-zinc-300 outline-none focus:border-[#f26b3a] resize-none"
-                />
+                <div className="h-full bg-zinc-900/40 p-6 rounded-3xl border border-zinc-800 shadow-inner">
+                  <textarea
+                    value={newBody}
+                    onChange={e => setNewBody(e.target.value)}
+                    placeholder={`{\n  "status": "ready",\n  "audit": true\n}`}
+                    className="w-full h-48 bg-[#1c1c1c] border border-zinc-800 rounded-2xl p-6 font-mono text-xs text-zinc-300 outline-none focus:border-[#f26b3a] transition resize-none shadow-inner"
+                  />
+                </div>
               )}
             </div>
 
-            <div className="p-6 pt-4 border-t border-[#333] flex justify-end gap-3">
-              <button type="button" onClick={() => setShowCreateModal(false)} className="px-5 py-2 text-sm font-medium text-zinc-400 hover:text-white transition cursor-pointer">Cancel</button>
-              <button type="submit" disabled={isSaving} className="px-6 py-2 bg-[#f26b3a] hover:bg-[#e65c2b] text-white font-bold rounded shadow-lg transition cursor-pointer disabled:opacity-50">
-                {isSaving ? 'Saving...' : (editCollectionId ? 'Update Blueprint' : 'Create Template')}
+            <div className="p-10 py-8 border-t border-[#333] flex justify-end gap-6 bg-gradient-to-t from-black/20 to-transparent">
+              <button type="button" onClick={() => setShowCreateModal(false)} className="text-xs font-black text-zinc-600 uppercase tracking-[0.2em] hover:text-white transition cursor-pointer">Abort Construction</button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="bg-[#f26b3a] hover:bg-[#e65c2b] text-white px-10 py-3 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-[#f26b3a]/20 transition disabled:opacity-50 cursor-pointer"
+              >
+                {isSaving ? 'Synchronizing...' : (editCollectionId ? 'Update Blueprint' : 'Finalize Registry')}
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {inspectCollection && (() => {
-        let parsedParams: Record<string, string> = {}
-        let baseInspectUrl = inspectCollection.url
-        try {
-          const u = new URL(inspectCollection.url)
-          u.searchParams.forEach((v, k) => { parsedParams[k] = v })
-          baseInspectUrl = u.origin + u.pathname
-        } catch (e) { }
-
-        let parsedHeaders: Record<string, string> = {}
-        if (inspectCollection.headers) {
-          try { parsedHeaders = JSON.parse(inspectCollection.headers) } catch (e) { }
-        }
-
-        return (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4" onClick={() => setInspectCollection(null)}>
-            <div className="bg-[#212121] border border-[#333] rounded-xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl relative" onClick={e => e.stopPropagation()}>
-              {/* Modal Header */}
-              <div className="p-6 pb-2">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-3">
-                      <span className="text-zinc-400 font-mono text-xs tracking-wider pr-3 border-r border-[#333] uppercase">TEMPLATE</span>
-                      <span className={`font-semibold tracking-wider text-sm ${inspectCollection.method === 'GET' ? 'text-[#4caf50]' :
-                        inspectCollection.method === 'POST' ? 'text-[#ffb300]' :
-                          inspectCollection.method === 'PUT' ? 'text-[#2196f3]' :
-                            inspectCollection.method === 'PATCH' ? 'text-[#9c27b0]' : 'text-[#f44336]'
-                        }`}>{inspectCollection.method}</span>
-                      <span className="text-lg font-mono text-white break-all">{baseInspectUrl}</span>
-                    </div>
-                    <div className="mt-1">
-                      <h2 className="text-xl font-bold text-white tracking-tight">{inspectCollection.name}</h2>
-                    </div>
-                  </div>
-                  <button onClick={() => setInspectCollection(null)} className="text-zinc-500 hover:text-white transition text-2xl font-light leading-none">&times;</button>
-                </div>
-
-                {/* Modal Tabs */}
-                <div className="flex gap-6 border-b border-[#333] mt-6">
-                  {['Params', 'Headers', 'Body'].map(tab => {
-                    let badgeCount = 0
-                    if (tab === 'Params') badgeCount = Object.keys(parsedParams).length
-                    if (tab === 'Headers') badgeCount = Object.keys(parsedHeaders).length
-
-                    return (
-                      <button
-                        key={tab}
-                        type="button"
-                        onClick={() => setInspectTab(tab)}
-                        className={`pb-2 px-1 text-sm font-medium transition-colors ${inspectTab === tab
-                          ? 'text-zinc-200 border-b-2 border-[#f26b3a]'
-                          : 'text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent'
-                          }`}
-                      >
-                        {tab} {badgeCount > 0 && <span className="ml-1 text-xs text-[#4caf50]">({badgeCount})</span>}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Modal Body Contents */}
-              <div className="p-6 pt-4 overflow-y-auto flex-grow text-sm min-h-[300px]">
-                {inspectTab === 'Params' && renderKVTable(parsedParams)}
-                {inspectTab === 'Headers' && renderKVTable(parsedHeaders)}
-                {inspectTab === 'Body' && (
-                  inspectCollection.body ? (
-                    <div className="bg-[#1e1e1e] border border-[#333] rounded overflow-hidden">
-                      <div className="p-4 font-mono whitespace-pre-wrap text-sm text-zinc-300">
-                        {(() => {
-                          try { return JSON.stringify(JSON.parse(inspectCollection.body), null, 2) }
-                          catch (e) { return inspectCollection.body }
-                        })()}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-zinc-500 italic p-4 text-sm bg-[#1e1e1e] border border-[#333] rounded">No body provided.</div>
-                  )
-                )}
-              </div>
-
-              <div className="p-6 pt-4 border-t border-[#333] flex justify-end gap-3">
-                <button onClick={() => setInspectCollection(null)} className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition">
-                  Close
-                </button>
-                <button onClick={() => { setInspectCollection(null); handleDraft(inspectCollection) }} className="px-5 py-2 bg-[#f26b3a] hover:bg-[#e65c2b] text-white font-semibold rounded-lg shadow-md transition cursor-pointer">
-                  Create Draft Request
-                </button>
-              </div>
-            </div>
-          </div>
-        )
-      })()}
-
-      {deleteId && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-[#1e1e1e] border border-red-900/30 rounded-xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-4 text-red-500 mb-4">
-              <div className="p-3 bg-red-500/10 rounded-full">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold">Confirm Deletion</h3>
-            </div>
-            <p className="text-zinc-400 text-sm leading-relaxed mb-6">
-              Are you sure you want to delete this request template? This action <span className="text-red-400 font-semibold underline underline-offset-4">cannot be undone</span> and will remove the blueprint from your collection.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button 
-                disabled={isDeleting}
-                onClick={() => setDeleteId(null)} 
-                className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button 
-                disabled={isDeleting}
-                onClick={handleDelete}
-                className="px-6 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded-lg shadow-lg shadow-red-900/20 transition active:scale-95 flex items-center gap-2 disabled:opacity-50 cursor-pointer"
-              >
-                {isDeleting ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    Deleting...
-                  </>
-                ) : 'Delete Template'}
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Modern Inspector Integration */}
+      {selectedTemplate && (
+        <Inspector
+          request={{
+            ...selectedTemplate,
+            status: 'TEMPLATE',
+            response: null,
+            requesterId: selectedTemplate.creatorId,
+            requester: { username: selectedTemplate.creator?.username || 'System' }
+          } as unknown as HttpRequestData}
+          onClose={() => setSelectedTemplate(null)}
+          onSaveTemplate={() => {
+            setEditCollectionId(selectedTemplate.id);
+            // The handleEditStart state logic is already handled elsewhere but for consistency:
+            // We'll just trigger the same logic as the edit button if the user wanted to edit from inspector,
+            // but usually inspector is for view. Dashboard uses "Save Template" button in inspector.
+            // In Collections, we'll just allow Draft.
+            handleDraft(selectedTemplate);
+          }}
+        />
       )}
 
+      {/* Premium Toast */}
       {toast && (
-        <div className={`fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-xl border ${toast.type === 'error' ? 'bg-red-900/30 border-red-500/50 text-red-500' : 'bg-emerald-900/30 border-emerald-500/50 text-emerald-400'} font-medium z-50 animate-in slide-in-from-bottom-4`}>
+        <div className={`fixed bottom-8 right-8 px-8 py-5 rounded-[1.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] border-2 ${toast.type === 'error' ? 'bg-[#451010] border-red-500 text-red-100' : 'bg-[#104520] border-green-500 text-green-100'} font-black text-[11px] uppercase tracking-[0.2em] z-[200] animate-in slide-in-from-right-10 flex items-center gap-3`}>
+          <div className={`w-2 h-2 rounded-full animate-pulse ${toast.type === 'error' ? 'bg-red-400' : 'bg-green-400'}`}></div>
           {toast.msg}
         </div>
       )}

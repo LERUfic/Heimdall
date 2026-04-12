@@ -1,10 +1,11 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
+import { UserSession } from './types'
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super_secret_key_123')
 
-export async function createToken(payload: any) {
-  return await new SignJWT(payload)
+export async function createToken(payload: UserSession) {
+  return await new SignJWT(payload as unknown as Record<string, string>)
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('24h')
     .sign(SECRET)
@@ -14,12 +15,12 @@ export async function verifyToken(token: string) {
   try {
     const { payload } = await jwtVerify(token, SECRET)
     return payload
-  } catch (err) {
+  } catch {
     return null
   }
 }
 
-export async function setSessionCookie(payload: any) {
+export async function setSessionCookie(payload: UserSession) {
   const token = await createToken(payload)
   const cookieStore = await cookies()
   cookieStore.set('session', token, {
@@ -30,12 +31,12 @@ export async function setSessionCookie(payload: any) {
   })
 }
 
-export async function getSession(): Promise<{ id: string; username: string; role: string } | null> {
+export async function getSession(): Promise<UserSession | null> {
   const cookieStore = await cookies()
   const token = cookieStore.get('session')?.value
   if (!token) return null
   const payload = await verifyToken(token)
-  return payload as any
+  return payload as unknown as UserSession
 }
 
 export async function clearSession() {

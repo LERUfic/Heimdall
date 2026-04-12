@@ -25,8 +25,9 @@ export async function GET(req: Request) {
     })
 
     return NextResponse.redirect(url.toString())
-  } catch (err: any) {
-    logger.error({ event: 'SSO_AUTH_ERROR', error: err.message })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    logger.error({ event: 'SSO_AUTH_ERROR', error: message })
     return NextResponse.redirect(new URL('/login?error=sso_failed_config', req.url))
   }
 }

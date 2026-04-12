@@ -73,7 +73,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     })
 
     return NextResponse.json({ request: updatedRequest })
-  } catch (err: any) {
-    return NextResponse.json({ error: 'Update failed', details: err.message }, { status: 500 })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Update failed'
+    return NextResponse.json({ error: 'Update failed', details: message }, { status: 500 })
   }
 }

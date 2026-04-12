@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { logger } from '@/lib/logger'
 
-export async function GET(req: Request) {
+export async function GET() {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -54,7 +54,8 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json({ collection: newCollection })
-  } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to save collection', details: err.message }, { status: 500 })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    return NextResponse.json({ error: 'Failed to save collection', details: message }, { status: 500 })
   }
 }

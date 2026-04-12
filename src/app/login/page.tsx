@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
@@ -36,7 +37,7 @@ export default function LoginPage() {
       } else {
         showToast('Login failed', 'error')
       }
-    } catch (err) {
+    } catch {
       showToast('Login failed. Network error.', 'error')
     } finally {
       setIsLoading(false)
@@ -47,7 +48,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-zinc-950">
       <div className="bg-zinc-900 p-8 rounded-xl shadow-2xl w-full max-w-sm ring-1 ring-zinc-800">
         <div className="flex items-center gap-3 mb-10 justify-center">
-          <img src="/logo.svg" alt="Heimdall Logo" className="w-12 h-12" />
+          <Image src="/logo.svg" alt="Heimdall Logo" width={48} height={48} />
           <div className="flex flex-col">
             <h1 className="text-3xl font-black tracking-tighter text-white leading-none">HEIMDALL</h1>
             <span className="text-[11px] font-bold text-[#00C2FF] tracking-[.2em] leading-none mt-1 uppercase">Project</span>

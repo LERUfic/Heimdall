@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
+import { Prisma } from '@prisma/client'
 
 export async function GET(req: Request) {
   const session = await getSession()
@@ -9,10 +10,9 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url)
   const role = session.role
-  let requests = []
 
   const q = searchParams.get('q') || ''
-  const whereClause: any = {}
+  const whereClause: Prisma.HttpRequestWhereInput = {}
   if (role !== 'APPROVER') {
     whereClause.requesterId = session.id
   }
@@ -25,7 +25,7 @@ export async function GET(req: Request) {
     ]
   }
 
-  requests = await prisma.httpRequest.findMany({
+  const requests = await prisma.httpRequest.findMany({
     where: whereClause,
     orderBy: { createdAt: 'desc' },
     take: 15,

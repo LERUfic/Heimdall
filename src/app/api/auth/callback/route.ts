@@ -79,8 +79,9 @@ export async function GET(req: Request) {
 
     return NextResponse.redirect(new URL('/', req.url))
 
-  } catch (err: any) {
-    logger.error({ event: 'SSO_CALLBACK_ERROR', error: err.message })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    logger.error({ event: 'SSO_CALLBACK_ERROR', error: message })
     return NextResponse.redirect(new URL('/login?error=sso_callback_failed', req.url))
   }
 }
