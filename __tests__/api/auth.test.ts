@@ -128,7 +128,7 @@ describe('Auth API (POST /api/auth/login)', () => {
     process.env.LDAP_BIND_DN = 'cn=admin'
     process.env.LDAP_BIND_PASSWORD = 'password'
     process.env.LDAP_SEARCH_FILTER = '(uid={{username}})'
-    
+
     const { authenticate } = await import('ldap-authentication')
     ;(authenticate as Mock).mockResolvedValue({ sAMAccountName: 'jdoe' })
 
@@ -168,7 +168,7 @@ describe('Auth API (POST /api/auth/login)', () => {
     process.env.LDAP_URL = 'ldap://test'
     process.env.LDAP_BIND_DN = 'cn=admin'
     delete process.env.LDAP_SEARCH_FILTER
-    
+
     const { authenticate } = await import('ldap-authentication')
     ;(authenticate as Mock).mockResolvedValue({ cn: 'jdoe' })
 
@@ -179,7 +179,7 @@ describe('Auth API (POST /api/auth/login)', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prismaMock.user.upsert.mockResolvedValue({ id: '1', username: 'jdoe', role: 'REQUESTER' } as any)
     await POST(req)
-    
+
     expect(authenticate).toHaveBeenCalledWith(expect.not.objectContaining({
       userSearchFilter: expect.anything()
     }))

@@ -21,7 +21,7 @@ describe('Requests API (POST /api/requests/[id]/reject)', () => {
     const mockRequest = { id: 'req-1', requesterId: 'user-id', status: 'PENDING' }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prismaMock.httpRequest.findUnique.mockResolvedValue(mockRequest as any)
-    
+
     const req = new Request('http://localhost/api/requests/req-1/reject', { method: 'POST' })
     const response = await POST(req, { params: Promise.resolve({ id: 'req-1' }) } as RouteParams)
 

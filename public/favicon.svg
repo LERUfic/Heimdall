@@ -1,10 +1,10 @@
 <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Shield Outline -->
   <path d="M50 10 L82 22 V45 C82 65 70 82 50 90 C30 82 18 65 18 45 V22 L50 10Z" fill="white" />
-  
+
   <!-- Outer Eye -->
   <path d="M28 45 C28 45 38 32 50 32 C62 32 72 45 72 45 C72 45 62 58 50 58 C38 58 28 45 28 45Z" fill="#0A0F1E" />
-  
+
   <!-- Inner Diamond Cyan -->
   <path d="M50 36 L62 45 L50 54 L38 45 L50 36Z" fill="#00C2FF" />
 </svg>

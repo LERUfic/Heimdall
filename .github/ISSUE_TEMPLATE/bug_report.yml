@@ -1,0 +1,116 @@
+name: "🐛 Bug Report"
+description: Report a reproducible bug or unexpected behavior in Heimdall.
+title: "[BUG] <short description>"
+labels: ["bug", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to file a bug report. Please fill out all required fields so we can reproduce and fix the issue quickly.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which part of Heimdall is affected?
+      options:
+        - Dashboard (Request List)
+        - Request Inspector
+        - Collections / Blueprints
+        - Authentication (LDAP/SSO)
+        - API Routes (backend)
+        - Database / Prisma
+        - Docker / Deployment
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: "When I click 'Execute' on an approved request, the response is not displayed in the Inspector."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Exact steps to reproduce the behavior.
+      placeholder: |
+        1. Log in as a REQUESTER
+        2. Create a new request to https://example.com
+        3. Log in as an APPROVER and approve the request
+        4. Log back in as REQUESTER and click "Execute"
+        5. Open the Inspector — response tab is blank
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened? Include any error messages or screenshots.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: auth-mode
+    attributes:
+      label: Authentication Mode
+      options:
+        - LDAP (with MOCK_LDAP=true)
+        - LDAP (real server)
+        - SSO (OIDC)
+        - Not applicable
+    validations:
+      required: true
+
+  - type: dropdown
+    id: database
+    attributes:
+      label: Database Backend
+      options:
+        - SQLite (default)
+        - MySQL
+        - PostgreSQL
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js Version
+      placeholder: "e.g. 20.11.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: Paste any relevant browser console errors, server logs (structured JSON output), or network errors.
+      render: shell
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues and this is not a duplicate.
+          required: true
+        - label: I have tested this on the latest `main` branch.
+          required: true
+        - label: I have included all reproduction steps.
+          required: true

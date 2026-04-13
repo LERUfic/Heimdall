@@ -24,7 +24,7 @@ describe('Collection Detail API (DELETE/PATCH /api/collections/[id])', () => {
 
       const req = new Request('http://localhost/api/collections/coll-1', { method: 'DELETE' })
       const response = await DELETE(req, { params: Promise.resolve({ id: 'coll-1' }) } as RouteParams)
-      
+
       expect(response.status).toBe(200)
       expect(prismaMock.requestCollection.delete).toHaveBeenCalled()
     })
@@ -36,7 +36,7 @@ describe('Collection Detail API (DELETE/PATCH /api/collections/[id])', () => {
 
       const req = new Request('http://localhost/api/collections/coll-1', { method: 'DELETE' })
       const response = await DELETE(req, { params: Promise.resolve({ id: 'coll-1' }) } as RouteParams)
-      
+
       expect(response.status).toBe(403)
     })
   })
@@ -54,7 +54,7 @@ describe('Collection Detail API (DELETE/PATCH /api/collections/[id])', () => {
         body: JSON.stringify({ name: 'Updated Name' })
       })
       const response = await PATCH(req, { params: Promise.resolve({ id: 'coll-1' }) } as RouteParams)
-      
+
       expect(response.status).toBe(200)
       expect(prismaMock.requestCollection.update).toHaveBeenCalled()
     })

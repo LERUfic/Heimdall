@@ -27,11 +27,11 @@ describe('Requests API (POST /api/requests/[id]/execute)', () => {
 
   it('should allow the requester to execute an APPROVED request', async () => {
     ;(getSession as Mock).mockResolvedValue({ id: 'user-1', role: 'REQUESTER' })
-    const mockRequest = { 
-        id: 'req-1', 
-        requesterId: 'user-1', 
-        status: 'APPROVED', 
-        method: 'POST', 
+    const mockRequest = {
+        id: 'req-1',
+        requesterId: 'user-1',
+        status: 'APPROVED',
+        method: 'POST',
         url: 'https://api.test/webhook',
         headers: JSON.stringify({ 'Content-Type': 'application/json' }),
         body: '{"foo":"bar"}'
@@ -80,11 +80,11 @@ describe('Requests API (POST /api/requests/[id]/execute)', () => {
 
   it('should handle execution failure (fetch error)', async () => {
     ;(getSession as Mock).mockResolvedValue({ id: 'user-1', role: 'REQUESTER' })
-    prismaMock.httpRequest.findUnique.mockResolvedValue({ 
+    prismaMock.httpRequest.findUnique.mockResolvedValue({
         id: 'req-1', requesterId: 'user-1', status: 'APPROVED', method: 'GET', url: 'https://broken.api'
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)
-    
+
     globalFetch.mockRejectedValue(new Error('Network failure'))
 
     const req = new Request('http://localhost/api/requests/req-1/execute', { method: 'POST' })

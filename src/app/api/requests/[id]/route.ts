@@ -63,9 +63,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       event: 'REQUEST_UPDATED',
       userId: session.id,
       username: session.username,
-      metadata: { 
-        requestId: p.id, 
-        oldMethod: request.method, 
+      metadata: {
+        requestId: p.id,
+        oldMethod: request.method,
         newMethod: method,
         oldUrl: request.url,
         newUrl: url

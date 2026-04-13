@@ -1,0 +1,52 @@
+repos:
+  # ─── General File Hygiene ────────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim trailing whitespace
+      - id: end-of-file-fixer
+        name: Ensure files end with a newline
+      - id: mixed-line-ending
+        name: Enforce Unix line endings
+        args: [--fix=lf]
+      - id: check-merge-conflict
+        name: Detect unresolved merge conflicts
+      - id: check-json
+        name: Validate JSON syntax
+      - id: check-yaml
+        name: Validate YAML syntax
+      - id: detect-private-key
+        name: Block private key commits (RSA/SSH/PEM)
+
+  # ─── Secret Scanning (gitleaks) ─────────────────────────────────────────────
+  # Detects 600+ secret patterns: API keys, JWTs, DB connection strings,
+  # cloud credentials (AWS/GCP/Azure), tokens, passwords, and more.
+  # Install: brew install gitleaks
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.3
+    hooks:
+      - id: gitleaks
+        name: "Security · Gitleaks secret scan"
+
+  # ─── Heimdall — ESLint ───────────────────────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: eslint
+        name: "Heimdall · ESLint"
+        language: system
+        entry: npm run lint
+        pass_filenames: false
+        files: \.(ts|tsx|js|mjs)$
+        stages: [pre-commit]
+
+  # ─── Heimdall — Vitest (Full Coverage) ──────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: vitest-coverage
+        name: "Heimdall · Vitest Coverage"
+        language: system
+        entry: npm run test:coverage
+        pass_filenames: false
+        stages: [pre-commit]
+        always_run: true

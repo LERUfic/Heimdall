@@ -18,7 +18,7 @@ export async function GET(req: Request) {
     url.searchParams.append('response_type', 'code')
     url.searchParams.append('scope', 'openid email profile')
     // (Optional) State / Nonce mapping if strict PKCE is demanded by the enterprise IT later
-    
+
     logger.info({
       event: 'SSO_REDIRECT_INITIATED',
       metadata: { target_idp: authUrl }

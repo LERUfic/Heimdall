@@ -82,7 +82,7 @@ export async function configure(prismaProvider: string, deps: ConfigDeps = defau
 
     deps.log('\n\x1b[32mSUCCESS: Database consolidated and configured.\x1b[0m');
     deps.log('\x1b[34mNOTE: schema.prisma is now your single source of truth.\x1b[0m');
-    
+
     if (prismaProvider === 'mysql' || prismaProvider === 'postgresql') {
       deps.log('\x1b[33m\nNEXT STEPS:\x1b[0m');
       deps.log(`1. Update DATABASE_URL in .env to your ${prismaProvider.toUpperCase()} connection string.`);

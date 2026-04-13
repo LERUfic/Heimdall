@@ -56,8 +56,8 @@ export default function TemplateModal({ onClose, onSave }: TemplateModalProps) {
 
         <div className="flex justify-end gap-3 pt-2">
           <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-zinc-500 hover:text-white transition uppercase tracking-widest">Cancel</button>
-          <button 
-            onClick={handleSubmit} 
+          <button
+            onClick={handleSubmit}
             disabled={!name.trim() || loading}
             className="px-6 py-2 bg-[#f26b3a] hover:bg-[#e65c2b] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold rounded-lg shadow-lg transition uppercase tracking-widest"
           >

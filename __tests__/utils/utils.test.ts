@@ -33,7 +33,7 @@ describe('UI Utilities', () => {
       expect(getMethodColor('DELETE')).toContain('#f44336')
       expect(getMethodColor('HEAD')).toContain('zinc-500')
     })
-    
+
     it('handles lowercase/missing methods', () => {
       expect(getMethodColor('get')).toContain('#4caf50')
       expect(getMethodColor(undefined as unknown as string)).toContain('zinc-500')

@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
 
   allowedDevOrigins: [...validIps, ...allowedExternalOrigins],
 
-  // Note: If your login is failing due to Next.js 14+ Server Actions, 
+  // Note: If your login is failing due to Next.js 14+ Server Actions,
   // you likely also need to explicitly whitelist them here:
   experimental: {
     serverActions: {
