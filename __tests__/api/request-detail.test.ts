@@ -24,7 +24,7 @@ describe('Request Detail API (GET/PATCH /api/requests/[id])', () => {
 
       const req = new Request('http://localhost/api/requests/req-1')
       const response = await GET(req, { params: Promise.resolve({ id: 'req-1' }) } as RouteParams)
-      
+
       expect(response.status).toBe(200)
     })
 
@@ -35,7 +35,7 @@ describe('Request Detail API (GET/PATCH /api/requests/[id])', () => {
 
       const req = new Request('http://localhost/api/requests/req-1')
       const response = await GET(req, { params: Promise.resolve({ id: 'req-1' }) } as RouteParams)
-      
+
       expect(response.status).toBe(403)
     })
   })
@@ -53,7 +53,7 @@ describe('Request Detail API (GET/PATCH /api/requests/[id])', () => {
         body: JSON.stringify({ url: 'https://new-url.com' })
       })
       const response = await PATCH(req, { params: Promise.resolve({ id: 'req-1' }) } as RouteParams)
-      
+
       expect(response.status).toBe(200)
       expect(prismaMock.httpRequest.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -72,7 +72,7 @@ describe('Request Detail API (GET/PATCH /api/requests/[id])', () => {
         body: JSON.stringify({ url: 'https://new-url.com' })
       })
       const response = await PATCH(req, { params: Promise.resolve({ id: 'req-1' }) } as RouteParams)
-      
+
       expect(response.status).toBe(400)
     })
 
@@ -86,7 +86,7 @@ describe('Request Detail API (GET/PATCH /api/requests/[id])', () => {
         body: JSON.stringify({ url: 'https://evil.com' })
       })
       const response = await PATCH(req, { params: Promise.resolve({ id: 'req-1' }) } as RouteParams)
-      
+
       expect(response.status).toBe(403)
       expect(prismaMock.httpRequest.update).not.toHaveBeenCalled()
     })
@@ -102,7 +102,7 @@ describe('Request Detail API (GET/PATCH /api/requests/[id])', () => {
         body: JSON.stringify({ url: 'https://fail.com' })
       })
       const response = await PATCH(req, { params: Promise.resolve({ id: 'req-1' }) } as RouteParams)
-      
+
       expect(response.status).toBe(500)
     })
   })

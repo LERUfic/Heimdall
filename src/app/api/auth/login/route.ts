@@ -57,14 +57,14 @@ export async function POST(req: Request) {
       create: { username, role }
     })
     await setSessionCookie({ id: user.id, username: user.username, role: user.role })
-    
+
     logger.info({
       event: 'USER_LOGIN_SUCCESS',
       userId: user.id,
       username: user.username,
       metadata: { role: user.role, isMock }
     })
-    
+
     return NextResponse.json({ success: true, user })
   }
 

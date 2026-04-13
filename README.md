@@ -1,5 +1,5 @@
 <h1 align="center">
-<img height="200" alt="Heimdall" align="center" src="https://github.com/user-attachments/assets/690de34e-0d27-4e2d-b1ce-2366e6ac1649" />  
+<img height="200" alt="Heimdall" align="center" src="https://github.com/user-attachments/assets/690de34e-0d27-4e2d-b1ce-2366e6ac1649" />
 </h1>
 <h1 align="center">
 Heimdall HTTP Approval Platform
@@ -31,7 +31,7 @@ Heimdall is a secure, role-based HTTP Request Approval System built with Next.js
 ## 🛠 Tech Stack
 
 - **Framework**: Next.js 16 (App Router + React)
-- **Styling**: Tailwind CSS 
+- **Styling**: Tailwind CSS
 - **Database**: Prisma ORM with SQLite backend (Easily swappable to PostgreSQL/MySQL)
 - **Authentication**: Dual-mode engine utilizing `ldap-authentication` for Active Directory and vanilla `fetch()` + `jose` for pure natively validated OAuth2 (OIDC) JSON Web Tokens.
 
@@ -110,7 +110,7 @@ Heimdall is designed for zero-config local development with SQLite, but supports
 The repository contains a fully structured `Dockerfile` to seamlessly host the server on any infrastructure without local dependencies.
 
 1. **Build the container**
-   
+
    For **SQLite** (Default):
    ```bash
    docker build -t heimdall-platform .

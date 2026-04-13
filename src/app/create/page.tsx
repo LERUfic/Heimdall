@@ -9,11 +9,11 @@ export default function CreateRequest() {
   const [method, setMethod] = useState('GET')
   const [url, setUrl] = useState('')
   const [activeTab, setActiveTab] = useState('Params')
-  
+
   const [paramsArr, setParamsArr] = useState<KeyValuePair[]>([{ key: '', value: '' }])
   const [headersArr, setHeadersArr] = useState<KeyValuePair[]>([{ key: '', value: '' }])
   const [body, setBody] = useState('')
-  
+
   // Auth states
   const [authType, setAuthType] = useState('None')
   const [bearerToken, setBearerToken] = useState('')
@@ -36,7 +36,7 @@ export default function CreateRequest() {
         const r = JSON.parse(cloneData)
         setMethod(r.method || 'GET')
         setBody(r.body || '')
-        
+
         let targetUrl = r.url || ''
         try {
           const u = new URL(targetUrl)
@@ -102,7 +102,7 @@ export default function CreateRequest() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    
+
     // Parse URL and append params
     let finalUrl = url
     const validParams = paramsArr.filter(p => p.key.trim() !== '')
@@ -122,7 +122,7 @@ export default function CreateRequest() {
     headersArr.forEach(h => {
       if (h.key.trim()) parsedHeaders[h.key.trim()] = h.value.trim()
     })
-    
+
     // Handle Auth injection
     if (authType === 'Bearer Token' && bearerToken.trim() !== '') {
       parsedHeaders['Authorization'] = `Bearer ${bearerToken.trim()}`
@@ -133,11 +133,11 @@ export default function CreateRequest() {
     try {
       const res = await fetch('/api/requests', {
         method: 'POST',
-        body: JSON.stringify({ 
-          method, 
-          url: finalUrl, 
-          headers: Object.keys(parsedHeaders).length > 0 ? parsedHeaders : null, 
-          body 
+        body: JSON.stringify({
+          method,
+          url: finalUrl,
+          headers: Object.keys(parsedHeaders).length > 0 ? parsedHeaders : null,
+          body
         })
       })
       if (res.ok) {
@@ -159,11 +159,11 @@ export default function CreateRequest() {
         <div className="col-span-6 px-3 py-2">VALUE</div>
         <div className="col-span-1 px-3 py-2"></div>
       </div>
-      
+
       {arr.map((h, i) => (
         <div key={i} className="grid grid-cols-12 border-b border-[#333] last:border-b-0 bg-[#1e1e1e] hover:bg-[#252525] group transition-colors">
           <div className="col-span-5 border-r border-[#333]">
-            <input 
+            <input
               type="text" placeholder="Key"
               value={h.key}
               onChange={e => handleChangeRow(i, 'key', e.target.value, arr, setArr)}
@@ -171,7 +171,7 @@ export default function CreateRequest() {
             />
           </div>
           <div className="col-span-6 border-r border-[#333]">
-            <input 
+            <input
               type="text" placeholder="Value"
               value={h.value}
               onChange={e => handleChangeRow(i, 'value', e.target.value, arr, setArr)}
@@ -179,8 +179,8 @@ export default function CreateRequest() {
             />
           </div>
           <div className="col-span-1 flex items-center justify-center">
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => handleRemoveRow(i, arr, setArr)}
               className={`text-zinc-600 hover:text-red-500 transition ${arr.length === 1 ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'}`}
             >
@@ -204,15 +204,15 @@ export default function CreateRequest() {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6 bg-[#212121] border border-[#333] rounded-lg p-6 shadow-xl">
-          
+
           {/* Top Bar */}
           <div className="flex bg-[#2a2a2a] rounded-lg border border-[#333] overflow-hidden focus-within:ring-1 focus-within:ring-[#f26b3a]">
-            <select 
-              value={method} 
+            <select
+              value={method}
               onChange={e => setMethod(e.target.value)}
               className={`bg-[#2a2a2a] font-semibold tracking-wider text-sm outline-none px-4 py-3 border-r border-[#333] appearance-none min-w-[100px] cursor-pointer ${
-                method === 'GET' ? 'text-[#4caf50]' : 
-                method === 'POST' ? 'text-[#ffb300]' : 
+                method === 'GET' ? 'text-[#4caf50]' :
+                method === 'POST' ? 'text-[#ffb300]' :
                 method === 'PUT' ? 'text-[#2196f3]' :
                 method === 'PATCH' ? 'text-[#9c27b0]' : 'text-[#f44336]'
               }`}
@@ -223,10 +223,10 @@ export default function CreateRequest() {
               <option value="PATCH" className="text-[#9c27b0]">PATCH</option>
               <option value="DELETE" className="text-[#f44336]">DELETE</option>
             </select>
-            
-            <input 
+
+            <input
               type="url" required
-              value={url} 
+              value={url}
               onChange={e => setUrl(e.target.value)}
               placeholder="Enter request URL"
               className="flex-1 bg-transparent text-white px-4 py-3 outline-none font-mono text-sm placeholder-zinc-600 focus:bg-[#303030]"
@@ -246,13 +246,13 @@ export default function CreateRequest() {
                 if (tab === 'Headers') badgeCount = headersArr.filter(h => h.key.trim()).length
 
                 return (
-                  <button 
+                  <button
                     key={tab}
                     type="button"
                     onClick={() => setActiveTab(tab)}
                     className={`pb-2 px-1 text-sm font-medium transition-colors ${
-                      activeTab === tab 
-                        ? 'text-zinc-200 border-b-2 border-[#f26b3a]' 
+                      activeTab === tab
+                        ? 'text-zinc-200 border-b-2 border-[#f26b3a]'
                         : 'text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent'
                     }`}
                   >
@@ -265,7 +265,7 @@ export default function CreateRequest() {
 
             {/* Tab Contents */}
             <div className="mt-2 text-sm min-h-[300px]">
-              
+
               {activeTab === 'Params' && renderKVTable(paramsArr, setParamsArr)}
               {activeTab === 'Headers' && renderKVTable(headersArr, setHeadersArr)}
 
@@ -273,8 +273,8 @@ export default function CreateRequest() {
                 <div className="h-full flex flex-col border border-[#333] rounded bg-[#1e1e1e]">
                   <div className="p-4 border-b border-[#333] flex items-center gap-4">
                     <span className="text-zinc-500 font-semibold text-xs tracking-wider">TYPE</span>
-                    <select 
-                      value={authType} 
+                    <select
+                      value={authType}
                       onChange={e => setAuthType(e.target.value)}
                       className="bg-[#2a2a2a] text-zinc-300 text-sm outline-none px-3 py-1.5 border border-[#333] rounded"
                     >
@@ -288,8 +288,8 @@ export default function CreateRequest() {
                     {authType === 'Bearer Token' && (
                       <div className="flex flex-col gap-2 max-w-md">
                         <label className="text-xs font-semibold text-zinc-500 tracking-wider">TOKEN</label>
-                        <input 
-                          type="text" value={bearerToken} onChange={e => setBearerToken(e.target.value)} 
+                        <input
+                          type="text" value={bearerToken} onChange={e => setBearerToken(e.target.value)}
                           placeholder="Enter Bearer token"
                           className="bg-[#2a2a2a] px-3 py-2 border border-[#333] rounded text-zinc-300 font-mono outline-none focus:border-[#f26b3a]"
                         />
@@ -299,15 +299,15 @@ export default function CreateRequest() {
                       <div className="flex flex-col gap-4 max-w-md">
                         <div className="flex flex-col gap-2">
                           <label className="text-xs font-semibold text-zinc-500 tracking-wider">USERNAME</label>
-                          <input 
-                            type="text" value={basicUser} onChange={e => setBasicUser(e.target.value)} 
+                          <input
+                            type="text" value={basicUser} onChange={e => setBasicUser(e.target.value)}
                             className="bg-[#2a2a2a] px-3 py-2 border border-[#333] rounded text-zinc-300 font-mono outline-none focus:border-[#f26b3a]"
                           />
                         </div>
                         <div className="flex flex-col gap-2">
                           <label className="text-xs font-semibold text-zinc-500 tracking-wider">PASSWORD</label>
-                          <input 
-                            type="password" value={basicPass} onChange={e => setBasicPass(e.target.value)} 
+                          <input
+                            type="password" value={basicPass} onChange={e => setBasicPass(e.target.value)}
                             className="bg-[#2a2a2a] px-3 py-2 border border-[#333] rounded text-zinc-300 font-mono outline-none focus:border-[#f26b3a]"
                           />
                         </div>
@@ -325,8 +325,8 @@ export default function CreateRequest() {
                     </label>
                     <span className="text-zinc-600">JSON</span>
                   </div>
-                  <textarea 
-                    value={body} 
+                  <textarea
+                    value={body}
                     onChange={e => setBody(e.target.value)}
                     placeholder={`{\n  // Enter JSON body here\n}`}
                     className="w-full h-[400px] bg-transparent px-4 py-3 outline-none text-zinc-300 font-mono focus:ring-1 focus:ring-[#f26b3a] resize-none"

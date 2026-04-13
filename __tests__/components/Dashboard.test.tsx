@@ -63,7 +63,7 @@ describe('Dashboard Component - Final Stability', () => {
     // 3. Clone & Logout
     fireEvent.click(screen.getAllByRole('button', { name: /Clone/i })[0])
     expect(mockPush).toHaveBeenCalledWith('/create')
-    
+
     fireEvent.click(screen.getByRole('button', { name: /Logout/i }))
     expect(global.fetch).toHaveBeenCalledWith('/api/auth/logout', expect.any(Object))
 

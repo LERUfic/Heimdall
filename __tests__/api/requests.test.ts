@@ -18,7 +18,7 @@ describe('Request Approval API (POST /api/requests/[id]/approve)', () => {
 
   it('should allow an approver to approve a PENDING request', async () => {
     ;(getSession as Mock).mockResolvedValue({ id: 'approver-id', username: 'boss', role: 'APPROVER' })
-    
+
     const mockRequest = { id: 'req-1', requesterId: 'user-1', status: 'PENDING' }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prismaMock.httpRequest.findUnique.mockResolvedValue(mockRequest as any)
@@ -62,7 +62,7 @@ describe('Request Approval API (POST /api/requests/[id]/approve)', () => {
 
   it('should return 401 if user is not an APPROVER', async () => {
     ;(getSession as Mock).mockResolvedValue({ id: 'user-id', username: 'jdoe', role: 'REQUESTER' })
-    
+
     const req = new Request('http://localhost/api/requests/req-1/approve', {
       method: 'POST',
     })
@@ -77,7 +77,7 @@ describe('Request Approval API (POST /api/requests/[id]/approve)', () => {
 
     const req = new Request('http://localhost/api/requests/ghost-1/approve', { method: 'POST' })
     const response = await POST(req, { params: Promise.resolve({ id: 'ghost-1' }) } as RouteParams)
-    
+
     expect(response.status).toBe(404)
   })
 
@@ -89,7 +89,7 @@ describe('Request Approval API (POST /api/requests/[id]/approve)', () => {
 
     const req = new Request('http://localhost/api/requests/req-1/approve', { method: 'POST' })
     const response = await POST(req, { params: Promise.resolve({ id: 'req-1' }) } as RouteParams)
-    
+
     expect(response.status).toBe(500)
   })
 })

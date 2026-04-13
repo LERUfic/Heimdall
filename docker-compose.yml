@@ -13,7 +13,7 @@ services:
       - DATABASE_URL=file:/app/data/production.db
       - JWT_SECRET=change_this_to_a_secure_random_string_for_production
       - MOCK_LDAP=true
-      
+
       # Uncomment and fill out to enable Active Directory LDAP in production!
       # - LDAP_URL=ldap://your-server:389
       # - LDAP_BIND_DN=cn=admin,dc=example,dc=com
@@ -21,7 +21,7 @@ services:
       # - LDAP_SEARCH_BASE_DNS=dc=example,dc=com
       # - LDAP_USERNAME_ATTRIBUTE=sAMAccountName
       # - APPROVERS=admin,john.doe
-    
+
     volumes:
       # Mounts the persistent volume internally to `/app/data` where SQLite writes.
       - heimdall_database:/app/data

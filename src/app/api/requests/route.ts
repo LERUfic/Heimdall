@@ -29,7 +29,7 @@ export async function GET(req: Request) {
     where: whereClause,
     orderBy: { createdAt: 'desc' },
     take: 15,
-    include: { 
+    include: {
       requester: { select: { username: true } },
       approver: { select: { username: true } }
     }

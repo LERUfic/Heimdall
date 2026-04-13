@@ -77,14 +77,14 @@ export default function Inspector({ request: r, onClose, onSaveTemplate }: Inspe
   }
 
   return (
-    <div 
-        className={`fixed inset-0 z-50 flex items-center justify-end bg-black/80 ${closing ? 'animate-fade-out' : 'animate-fade-in'}`} 
-        onClick={handleClose} 
-        role="dialog" 
+    <div
+        className={`fixed inset-0 z-50 flex items-center justify-end bg-black/80 ${closing ? 'animate-fade-out' : 'animate-fade-in'}`}
+        onClick={handleClose}
+        role="dialog"
         aria-modal="true"
     >
-      <div 
-        className={`h-full w-full max-w-2xl bg-[#1c1c1c] shadow-[0_0_50px_rgba(0,0,0,0.5)] border-l border-[#333] flex flex-col transform ${closing ? 'animate-slide-out-right' : 'animate-slide-in-right'}`} 
+      <div
+        className={`h-full w-full max-w-2xl bg-[#1c1c1c] shadow-[0_0_50px_rgba(0,0,0,0.5)] border-l border-[#333] flex flex-col transform ${closing ? 'animate-slide-out-right' : 'animate-slide-in-right'}`}
         onClick={_e => _e.stopPropagation()}
       >
         {/* Header */}
@@ -96,7 +96,7 @@ export default function Inspector({ request: r, onClose, onSaveTemplate }: Inspe
                 <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest">{r.id.split('-')[0]}</span>
               </div>
               <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">Inspection Detail</h2>
-              
+
               <div className="flex gap-8 mt-6">
                 <div>
                   <div className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Operator</div>
@@ -157,9 +157,9 @@ export default function Inspector({ request: r, onClose, onSaveTemplate }: Inspe
             }
 
             return (
-              <button 
-                key={t} 
-                onClick={() => setTab(t)} 
+              <button
+                key={t}
+                onClick={() => setTab(t)}
                 className={`px-6 py-4 text-[11px] font-bold tracking-widest uppercase transition-all border-b-2 flex items-center gap-2 cursor-pointer ${tab === t ? 'border-[#f26b3a] text-white bg-[#f26b3a]/5' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
               >
                 {t}
@@ -171,8 +171,8 @@ export default function Inspector({ request: r, onClose, onSaveTemplate }: Inspe
               </button>
             )
           })}
-          <button 
-            onClick={() => onSaveTemplate(r)} 
+          <button
+            onClick={() => onSaveTemplate(r)}
             className="ml-auto mr-6 my-auto px-4 py-2 text-[10px] font-black bg-[#f26b3a] text-white rounded-lg uppercase tracking-widest hover:bg-[#e65c2b] shadow-lg shadow-[#f26b3a]/20 transition flex items-center gap-2 cursor-pointer"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" /></svg>

@@ -18,29 +18,29 @@ describe('TemplateModal Component', () => {
   it('validates input before saving', async () => {
     render(<TemplateModal onClose={mockOnClose} onSave={mockOnSave} />)
     const saveBtn = screen.getByText('Confirm Save')
-    
+
     expect(saveBtn.hasAttribute('disabled')).toBe(true)
-    
+
     fireEvent.change(screen.getByPlaceholderText(/Production Cache Purge/i), { target: { value: 'My Template' } })
     expect(saveBtn.hasAttribute('disabled')).toBe(false)
-    
+
     await act(async () => {
       fireEvent.click(saveBtn)
     })
-    
+
     expect(mockOnSave).toHaveBeenCalledWith('My Template', false)
   })
 
   it('handles global toggle', async () => {
     render(<TemplateModal onClose={mockOnClose} onSave={mockOnSave} />)
-    
+
     fireEvent.change(screen.getByPlaceholderText(/Production Cache Purge/i), { target: { value: 'Global Template' } })
     fireEvent.click(screen.getByRole('checkbox'))
-    
+
     await act(async () => {
       fireEvent.click(screen.getByText('Confirm Save'))
     })
-    
+
     expect(mockOnSave).toHaveBeenCalledWith('Global Template', true)
   })
 

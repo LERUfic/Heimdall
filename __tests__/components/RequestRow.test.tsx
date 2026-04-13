@@ -4,11 +4,11 @@ import RequestRow from '@/components/RequestRow'
 
 describe('RequestRow Component', () => {
   const mockUser = { id: 'u1', username: 'admin', role: 'APPROVER' }
-  const mockRequest = { 
-    id: 'req123-abc', 
-    method: 'GET', 
-    url: 'http://example.com', 
-    status: 'PENDING', 
+  const mockRequest = {
+    id: 'req123-abc',
+    method: 'GET',
+    url: 'http://example.com',
+    status: 'PENDING',
     requesterId: 'u2',
     requester: { username: 'user2' },
     createdAt: new Date().toISOString()
@@ -23,7 +23,7 @@ describe('RequestRow Component', () => {
 
   it('renders request details correctly', () => {
     render(<table><tbody><RequestRow request={mockRequest} user={mockUser} loadingAction={null} {...mockHandlers} /></tbody></table>)
-    
+
     expect(screen.getByText('req123')).toBeDefined()
     expect(screen.getByText('GET')).toBeDefined()
     expect(screen.getByText('PENDING')).toBeDefined()
@@ -32,7 +32,7 @@ describe('RequestRow Component', () => {
 
   it('shows Approve/Reject buttons for Approvers on others requests', () => {
     render(<table><tbody><RequestRow request={mockRequest} user={mockUser} loadingAction={null} {...mockHandlers} /></tbody></table>)
-    
+
     expect(screen.getByText(/Approve/i)).toBeDefined()
     expect(screen.getByText(/Reject/i)).toBeDefined()
   })
@@ -40,7 +40,7 @@ describe('RequestRow Component', () => {
   it('shows Execute button for owners on approved requests', () => {
     const approvedReq = { ...mockRequest, status: 'APPROVED', requesterId: 'u1' }
     render(<table><tbody><RequestRow request={approvedReq} user={mockUser} loadingAction={null} {...mockHandlers} /></tbody></table>)
-    
+
     expect(screen.getByText(/Execute/i)).toBeDefined()
   })
 

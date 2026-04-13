@@ -9,7 +9,7 @@ export async function GET(req: Request) {
     const url = new URL(req.url)
     const code = url.searchParams.get('code')
     const error = url.searchParams.get('error')
-    
+
     if (error) throw new Error(`IdP returned error: ${error}`)
     if (!code) throw new Error("Missing authorization code from Identity Provider")
 
@@ -47,20 +47,20 @@ export async function GET(req: Request) {
 
     // 2. Decode the structured JWT (we trust the payload since it was securely fetched over TLS via client_secret)
     const idpPayload = decodeJwt(tokenData.id_token)
-    
+
     // Standard maps: Google/Keycloak usually output `email`, occasionally `preferred_username`
     const remoteUserIdentifier = (idpPayload.email || idpPayload.preferred_username || idpPayload.sub) as string
-    
+
     if (!remoteUserIdentifier) {
       throw new Error("Could not resolve an email or username identifier from the IdP payload")
     }
 
     // 3. Map to Internal SQLite Role Boundaries
     const approvers = (process.env.APPROVERS || 'admin').split(',').map(s => s.trim().toLowerCase())
-    
+
     // For SSO, we often rely on exact email string matching against the APPROVERS mapping:
     const role = approvers.includes(remoteUserIdentifier.toLowerCase()) ? 'APPROVER' : 'REQUESTER'
-    
+
     const user = await prisma.user.upsert({
       where: { username: remoteUserIdentifier.toLowerCase() },
       update: { role },
@@ -69,7 +69,7 @@ export async function GET(req: Request) {
 
     // 4. Issue the local execution JWT
     await setSessionCookie({ id: user.id, username: user.username, role: user.role })
-    
+
     logger.info({
       event: 'USER_LOGIN_SUCCESS',
       userId: user.id,

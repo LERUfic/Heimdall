@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
   try {
     const p = await req.json()
-    
+
     const newCollection = await prisma.requestCollection.create({
       data: {
         name: p.name,

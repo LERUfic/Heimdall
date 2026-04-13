@@ -44,13 +44,13 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
 
   const updated = await prisma.requestCollection.update({
     where: { id: params.id },
-    data: { 
+    data: {
       name: p.name ?? collection.name,
       method: p.method ?? collection.method,
       url: p.url ?? collection.url,
       headers: p.headers !== undefined ? p.headers : collection.headers,
       body: p.body !== undefined ? p.body : collection.body,
-      isGlobal: p.isGlobal !== undefined ? p.isGlobal : collection.isGlobal 
+      isGlobal: p.isGlobal !== undefined ? p.isGlobal : collection.isGlobal
     }
   })
 

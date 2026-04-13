@@ -27,16 +27,16 @@ Closes #<!-- issue number -->
 <!-- List the specific files and changes at a high level. -->
 
 **Backend / API:**
-- 
+-
 
 **Frontend / UI:**
-- 
+-
 
 **Tests:**
-- 
+-
 
 **Other:**
-- 
+-
 
 ---
 
@@ -52,8 +52,8 @@ Closes #<!-- issue number -->
 
 <!-- Describe manual steps you took to verify the changes work as expected. -->
 
-1. 
-2. 
+1.
+2.
 
 ### Screenshots (if UI changes)
 

@@ -130,8 +130,8 @@ export default function Dashboard() {
                 <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Logged in as</span>
                 <span className="text-sm font-black text-white italic tracking-tight">{auth.user.username} <span className="text-[10px] text-[#f26b3a] not-italic ml-1">[{auth.user.role}]</span></span>
             </div>
-            <button 
-                onClick={handleLogout} 
+            <button
+                onClick={handleLogout}
                 className="p-3 bg-zinc-800/50 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-xl transition border border-zinc-700/50 hover:border-zinc-600 shadow-xl flex items-center gap-2 group cursor-pointer"
                 title="Log Out of Session"
                 aria-label="Logout"

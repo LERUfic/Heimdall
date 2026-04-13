@@ -26,7 +26,7 @@ describe('Requests ID API (/[id]/route.ts)', () => {
       const res = await GET(new Request('http://l/1'), mockParams)
       expect(res.status).toBe(404)
     })
-    
+
     it('should return 200 and request data', async () => {
       ;(getSession as Mock).mockResolvedValue({ id: 'u1' })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
