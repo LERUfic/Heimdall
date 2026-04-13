@@ -37,11 +37,19 @@ describe('RequestRow Component', () => {
     expect(screen.getByText(/Reject/i)).toBeDefined()
   })
 
-  it('shows Execute button for owners on approved requests', () => {
+  it('shows Execute button for owners on approved requests and fires onAction when clicked', () => {
     const approvedReq = { ...mockRequest, status: 'APPROVED', requesterId: 'u1' }
     render(<table><tbody><RequestRow request={approvedReq} user={mockUser} loadingAction={null} {...mockHandlers} /></tbody></table>)
 
-    expect(screen.getByText(/Execute/i)).toBeDefined()
+    const executeBtn = screen.getByText(/Execute/i)
+    expect(executeBtn).toBeDefined()
+
+    fireEvent.click(executeBtn)
+    expect(mockHandlers.onAction).toHaveBeenCalledWith(
+      expect.anything(),
+      'req123-abc',
+      'execute'
+    )
   })
 
   it('triggers onSelect when clicking the row', () => {
