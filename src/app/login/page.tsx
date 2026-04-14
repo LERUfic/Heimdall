@@ -33,7 +33,7 @@ export default function LoginPage() {
         body: JSON.stringify({ username, password })
       })
       if (res.ok) {
-        router.push('/')
+        window.location.href = '/'
       } else {
         showToast('Login failed', 'error')
       }
