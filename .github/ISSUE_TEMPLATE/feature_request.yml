@@ -17,7 +17,7 @@ body:
       options:
         - Dashboard (Request List)
         - Request Inspector (Detail Panel)
-        - Collections / Blueprints
+        - Collections
         - Authentication (LDAP/SSO)
         - API Routes (backend)
         - Audit Logging

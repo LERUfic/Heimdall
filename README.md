@@ -23,7 +23,7 @@ Heimdall is a secure, role-based HTTP Request Approval System built with Next.js
 
 - **Flexible Authentication**: Natively supports legacy Active Directory / LDAP and modern Enterprise SSO (OpenID Connect via Google, Keycloak, Auth0) using a simple `AUTH_MODE` toggle.
 - **Role-Based Access Control (RBAC)**: Users are classified strictly as `REQUESTER` or `APPROVER` via whitelist environment constraints.
-- **Request Collections (Blueprints)**: Full-featured management of reusable request templates with custom visibility (Global/Private), Auth injection, Params, and Headers. Fully aligned with the main dashboard's premium UI.
+- **Request Collections**: Full-featured management of reusable request templates with custom visibility (Global/Private), Auth injection, Params, and Headers. Fully aligned with the main dashboard's premium UI.
 - **Granular Payload Construction**: Full GUI support for URL search parameters, header key-values (Basic/Bearer Auth injection), and raw JSON bodies.
 - **Full Lifecycle Audit Trail**: The Inspection Detail panel surfaces the complete request lifecycle — **Operator** (who requested + when), **Verifier** (who approved/rejected + when), and **Completion** (execution timestamp and status).
 - **Structured JSON Logs**: A zero-dependency logger outputs strictly formatted non-nested JSON to `stdout` — compatible with Datadog, ELK, and Loki.
@@ -37,7 +37,7 @@ Heimdall is a secure, role-based HTTP Request Approval System built with Next.js
 <img height="1039" alt="Dashboard" src="https://github.com/user-attachments/assets/3d5de97e-0c82-40bf-9d4f-c4670923b4f7" />
 <img height="1039" alt="Inspection Detail" src="https://github.com/user-attachments/assets/492434fb-d7b8-4a2b-b0f9-ec29f44b704d" />
 <img height="1037" alt="Request Collections" src="https://github.com/user-attachments/assets/b653c720-8eeb-4032-af72-92d234fb497d" />
-<img height="1037" alt="Blueprint Construction" src="https://github.com/user-attachments/assets/a44887f3-6a00-4370-a6ea-2e2d0550afd8" />
+<img height="1037" alt="Collection" src="https://github.com/user-attachments/assets/a44887f3-6a00-4370-a6ea-2e2d0550afd8" />
 <img height="1039" alt="Approval Flow" src="https://github.com/user-attachments/assets/41cf04fd-a928-4149-8e69-bd25cddbb9b7" />
 <img height="1038" alt="Execution Result" src="https://github.com/user-attachments/assets/b984fd26-52ac-484f-a222-66dfb56c3e05" />
 <img height="1038" alt="Login" src="https://github.com/user-attachments/assets/a483b91c-6f2f-40c6-a1ba-ed9176024a97" />

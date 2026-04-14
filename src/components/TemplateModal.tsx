@@ -24,12 +24,12 @@ export default function TemplateModal({ onClose, onSave }: TemplateModalProps) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose} aria-labelledby="modal-title" role="dialog">
       <div className="bg-zinc-900 border border-zinc-700 rounded-xl max-w-md w-full shadow-2xl p-6" onClick={e => e.stopPropagation()}>
-        <h2 id="modal-title" className="text-xl font-bold text-white mb-4">Save as Blueprint</h2>
-        <p className="text-sm text-zinc-400 mb-6">Persist this payload as a reusable Collection Blueprint for rapid enterprise execution.</p>
+        <h2 id="modal-title" className="text-xl font-bold text-white mb-4">Save as Collection</h2>
+        <p className="text-sm text-zinc-400 mb-6">Persist this payload as a reusable Collection for rapid enterprise execution.</p>
 
         <div className="space-y-4 mb-6">
           <div>
-            <label htmlFor="template-name" className="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-widest">Blueprint Name</label>
+            <label htmlFor="template-name" className="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-widest">Collection Name</label>
             <input
               id="template-name"
               type="text"
@@ -49,7 +49,7 @@ export default function TemplateModal({ onClose, onSave }: TemplateModalProps) {
             />
             <div>
               <span className="block text-sm font-bold text-white group-hover:text-[#f26b3a] transition">Global Enterprise Access</span>
-              <span className="block text-[10px] text-zinc-500 uppercase tracking-tight mt-0.5">Allow authorized team members to utilize this blueprint.</span>
+              <span className="block text-[10px] text-zinc-500 uppercase tracking-tight mt-0.5">Allow authorized team members to utilize this Collection.</span>
             </div>
           </label>
         </div>

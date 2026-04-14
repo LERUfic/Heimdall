@@ -89,7 +89,7 @@ export default function Collections() {
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
-    if (!confirm('Are you sure you want to delete this blueprint?')) return
+    if (!confirm('Are you sure you want to delete this collection?')) return
     try {
       const res = await fetch(`/api/collections/${id}`, { method: 'DELETE' })
       if (res.ok) {
@@ -215,7 +215,7 @@ export default function Collections() {
       if (res.ok) {
         mutate()
         setShowCreateModal(false)
-        showToast(editCollectionId ? 'Blueprint updated' : 'Blueprint construction complete', 'success')
+        showToast(editCollectionId ? 'Collection updated' : 'Collection construction complete', 'success')
       } else {
         const err = await res.json()
         showToast('Construction failed: ' + err.error, 'error')
@@ -233,7 +233,7 @@ export default function Collections() {
     })
     if (res.ok) {
       mutate()
-      showToast(`Blueprint is now ${!c.isGlobal ? 'Global' : 'Private'}`, 'success')
+      showToast(`Collection is now ${!c.isGlobal ? 'Global' : 'Private'}`, 'success')
     }
   }
 
@@ -260,7 +260,7 @@ export default function Collections() {
           </div>
           <div className="flex items-center gap-6">
             <div className="flex flex-col items-end gap-1">
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Operator Access</span>
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Logged in as</span>
               <span className="text-sm font-black text-white italic tracking-tight">{auth.user.username} <span className="text-[10px] text-[#f26b3a] not-italic ml-1">[{auth.user.role}]</span></span>
             </div>
             <button
@@ -276,8 +276,8 @@ export default function Collections() {
         {/* Title & Actions */}
         <div className="flex justify-between items-end mb-10 gap-6">
           <div className="flex-1 max-w-lg">
-            <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">Registry & Blueprints</h2>
-            <p className="text-zinc-500 text-xs font-bold uppercase tracking-[0.2em] opacity-60">Standardized templates for immediate payload dispatch.</p>
+            <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">Collections</h2>
+            <p className="text-zinc-500 text-xs font-bold uppercase tracking-[0.2em] opacity-60">Standardized templates</p>
           </div>
           <div className="flex items-center gap-3 w-full max-w-2xl">
             <div className="relative flex-1 group">
@@ -286,7 +286,7 @@ export default function Collections() {
               </div>
               <input
                 type="text"
-                placeholder="Search blueprints by name or URL..."
+                placeholder="Search collections by name or URL..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-[#2a2a2a] border border-[#333] pl-12 pr-4 py-3 rounded-2xl text-sm text-zinc-300 outline-none focus:border-[#f26b3a] focus:ring-4 focus:ring-[#f26b3a]/10 transition shadow-inner placeholder:text-zinc-600 placeholder:italic placeholder:font-medium"
@@ -311,7 +311,7 @@ export default function Collections() {
               className="bg-gradient-to-r from-[#f26b3a] to-[#e65c2b] hover:from-[#e65c2b] hover:to-[#f26b3a] text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-[#f26b3a]/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center gap-3 whitespace-nowrap"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
-              Create Blueprint
+              Create Collection
             </button>
           </div>
         </div>
@@ -323,15 +323,15 @@ export default function Collections() {
               <tr className="bg-[#2a2a2a]/30 border-b border-[#333]">
                 <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase">Template Name</th>
                 <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase">Method</th>
-                <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase">Target Endpoint</th>
+                <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase">Endpoint URL</th>
                 <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase">Visibility</th>
-                <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase">Creator</th>
+                <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase">Operator</th>
                 <th className="p-5 font-black text-[10px] tracking-[0.2em] text-zinc-500 uppercase text-right px-8">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
               {cols.collections.length === 0 && (
-                <tr><td colSpan={6} className="p-16 text-center text-zinc-600 text-sm font-bold uppercase italic tracking-widest bg-zinc-900/20">Blueprint registry is currently empty.</td></tr>
+                <tr><td colSpan={6} className="p-16 text-center text-zinc-600 text-sm font-bold uppercase italic tracking-widest bg-zinc-900/20">Collection registry is currently empty.</td></tr>
               )}
               {cols.collections.map((c: RequestCollectionData) => (
                 <tr
@@ -386,7 +386,7 @@ export default function Collections() {
                           <button
                             onClick={(e) => handleDelete(e, c.id)}
                             className="p-2 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 rounded-lg transition cursor-pointer"
-                            title="Decommission Blueprint"
+                            title="Decommission Collection"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                           </button>
@@ -401,7 +401,7 @@ export default function Collections() {
         </div>
       </div>
 
-      {/* Blueprint Construction Modal */}
+      {/* Collection Construction Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in" onClick={() => { setShowCreateModal(false); setEditCollectionId(null); }}>
           <form
@@ -412,7 +412,7 @@ export default function Collections() {
             <div className="p-10 pb-6 border-b border-[#333]">
               <div className="flex justify-between items-start mb-8">
                 <div>
-                  <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{editCollectionId ? 'Blueprint Refinement' : 'Blueprint Construction'}</h2>
+                  <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{editCollectionId ? 'Collection Refinement' : 'Collection Construction'}</h2>
                   <p className="text-[10px] text-zinc-500 mt-2 font-black uppercase tracking-[0.3em] opacity-60">Serializing audit standardized configurations</p>
                 </div>
                 <button type="button" onClick={() => { setShowCreateModal(false); setEditCollectionId(null); }} className="p-2 hover:bg-zinc-800 rounded-xl transition text-zinc-500 hover:text-white cursor-pointer">&times;</button>
@@ -420,7 +420,7 @@ export default function Collections() {
 
               <div className="grid grid-cols-12 gap-6">
                 <div className="col-span-8">
-                  <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Blueprint Identity</label>
+                  <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Collection Identity</label>
                   <input
                     required
                     type="text"
@@ -552,7 +552,7 @@ export default function Collections() {
                 disabled={isSaving}
                 className="bg-[#f26b3a] hover:bg-[#e65c2b] text-white px-10 py-3 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-[#f26b3a]/20 transition disabled:opacity-50 cursor-pointer"
               >
-                {isSaving ? 'Synchronizing...' : (editCollectionId ? 'Update Blueprint' : 'Finalize Registry')}
+                {isSaving ? 'Synchronizing...' : (editCollectionId ? 'Update Collection' : 'Finalize Registry')}
               </button>
             </div>
           </form>

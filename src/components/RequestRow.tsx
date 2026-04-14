@@ -68,10 +68,10 @@ export default function RequestRow({ request: r, user, loadingAction, onAction, 
           )}
           {r.requesterId === user.id && r.status === 'APPROVED' && (
             <button
-                disabled={!!loadingAction}
-                onClick={(e) => onAction(e, r.id, 'execute')}
-                className="px-4 py-1 bg-[#f26b3a] hover:bg-[#e65c2b] text-white text-[10px] font-bold rounded transition uppercase tracking-widest shadow-lg flex items-center gap-2 cursor-pointer"
-                title="Execute Pipeline"
+              disabled={!!loadingAction}
+              onClick={(e) => onAction(e, r.id, 'execute')}
+              className="px-4 py-1 bg-[#f26b3a] hover:bg-[#e65c2b] text-white text-[10px] font-bold rounded transition uppercase tracking-widest shadow-lg flex items-center gap-2 cursor-pointer"
+              title="Execute Pipeline"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               Execute
@@ -104,7 +104,7 @@ export default function RequestRow({ request: r, user, loadingAction, onAction, 
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
               </button>
-              <div className="absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 bg-zinc-800 text-white text-[10px] font-bold uppercase rounded opacity-0 group-hover/tip:opacity-100 transition whitespace-nowrap pointer-events-none ring-1 ring-zinc-700 shadow-2xl z-[60]">Save Blueprint</div>
+              <div className="absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 bg-zinc-800 text-white text-[10px] font-bold uppercase rounded opacity-0 group-hover/tip:opacity-100 transition whitespace-nowrap pointer-events-none ring-1 ring-zinc-700 shadow-2xl z-[60]">Save Collection</div>
             </div>
           </div>
         </div>

@@ -12,7 +12,7 @@ describe('TemplateModal Component', () => {
 
   it('renders correctly', () => {
     render(<TemplateModal onClose={mockOnClose} onSave={mockOnSave} />)
-    expect(screen.getByText(/Save as Blueprint/i)).toBeDefined()
+    expect(screen.getByText(/Save as Collection/i)).toBeDefined()
   })
 
   it('validates input before saving', async () => {

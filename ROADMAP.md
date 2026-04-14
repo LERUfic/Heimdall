@@ -4,7 +4,7 @@
 
 - [x] **Flexible Authentication**: LDAP and SSO (OIDC) integration with `AUTH_MODE` toggle.
 - [x] **Enhanced Auditing**: Structured JSON logging for audit trails + Inspection Detail lifecycle view (Operator / Verifier / Completion).
-- [x] **Request Templating**: Collections / Blueprint management with Global/Private visibility.
+- [x] **Request Templating**: Collections management with Global/Private visibility.
 - [x] **Pre-approval Modification**: Edit requests prior to final approval.
 - [x] **Database Portability**: SQLite, MySQL, and PostgreSQL support via Prisma.
 - [x] **UI Standardization**: Collections page aligned with Dashboard's premium glassmorphism design.
